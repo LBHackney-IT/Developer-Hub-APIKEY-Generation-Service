@@ -3,14 +3,19 @@ export class responseService {
     static success = (data: object | string) => {
         return {
             statusCode: 200,
-            data: data
+            body: JSON.stringify(data)
         }
     }
 
-    static error = (message: string, statusCode: number | string) => {
+    static error = (message: string, statusCode: number) => {
         return {
             statusCode: statusCode,
-            message: message
+            body: JSON.stringify({
+                error: {
+                   message: message
+                }
+            })
+                
         }
     }
 }
