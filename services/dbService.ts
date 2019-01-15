@@ -29,7 +29,7 @@ export class dbService {
         return this.dynamoDBDocuClient.get(params).promise();
     }
 
-    async updateVerifiedValue(id) : Promise<any> {
+    async verifyKey(id) : Promise<any> {
         const params = {
             TableName: this.tableName,
             Key: {
@@ -44,4 +44,22 @@ export class dbService {
 
         return this.dynamoDBDocuClient.update(params).promise();
     } 
+
+    async checkKey(apiKey: string, apiID: string ) : Promise<any> {
+        
+        const params = {
+            TableName: this.tableName,
+            FilterExpression : '#token = :token and #apiID = :apiID',
+            ExpressionAttributeNames: {
+                "#token": "token",
+                "#apiID": "apiID"
+            },
+            ExpressionAttributeValues: {
+                ":token": apiKey,
+                ":apiID": apiID 
+           }
+        };
+
+        return this.dynamoDBDocuClient.scan(params).promise();
+    }
 }
