@@ -28,30 +28,37 @@ provider:
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
 
 functions:
-  create-token:
-    handler: controllers/token.createToken
+  create-api-key:
+    handler: controllers/apiKey.createKey
     events:
       - http:
           method: post
-          path: create-token
+          path: create-api-key
           authorizer:
             arn: ${self:provider.environment.COGNITO_ARN}
-  read-token:
-    handler: controllers/token.readToken
+  read-api-key:
+    handler: controllers/apiKey.readKey
     events:
       - http:
           method: get
-          path: read-token
+          path: read-api-key
           authorizer:
             arn: ${self:provider.environment.COGNITO_ARN}
-  verify-token:
-    handler: controllers/token.verifyToken
+  verify-api-key:
+    handler: controllers/apiKey.verifyKey
     events:
       - http:
-          methods: post
-          path: verify-token
+          method: post
+          path: verify-api-key
           authorizer:
-            arn: ${self:provider.environment.COGNITO_ARN}          
+            arn: ${self:provider.environment.COGNITO_ARN}
+  authorize-api-key:
+    handler: controllers/apiKey.authoriseKey
+    events:
+      - http:
+          method: post
+          path: authorise-api-key
+
 resources:
   Resources:
     TokenStore:
