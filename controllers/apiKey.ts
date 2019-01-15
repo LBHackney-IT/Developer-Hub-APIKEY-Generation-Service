@@ -6,7 +6,7 @@ import { generateID } from '../helper';
 import { I_tokenBody } from '../interfaces';
 import { responseService } from '../services/responseService';
 
-export const createToken: APIGatewayProxyHandler = async (event, context) => {
+export const createKey: APIGatewayProxyHandler = async (event, context) => {
   try {
     
     let response;
@@ -42,8 +42,7 @@ export const createToken: APIGatewayProxyHandler = async (event, context) => {
   
 };
 
-
-export const readToken: APIGatewayProxyHandler = async (event, context) => {
+export const readKey: APIGatewayProxyHandler = async (event, context) => {
   try {
     let response;  
     const db: dbService = new dbService();
@@ -68,8 +67,7 @@ export const readToken: APIGatewayProxyHandler = async (event, context) => {
   }  
 };
 
-
-export const verifyToken: APIGatewayProxyHandler = async (event, context) => {
+export const verifyKey: APIGatewayProxyHandler = async (event, context) => {
   try {
     // check user is admin
     let response;
@@ -93,4 +91,8 @@ export const verifyToken: APIGatewayProxyHandler = async (event, context) => {
     
     return responseService.error(error.message, error.statusCode);
   }
+}
+
+export const authoriseKey: APIGatewayProxyHandler = async (event, context) => {
+  return true;
 }
