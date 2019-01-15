@@ -52,7 +52,7 @@ functions:
           path: verify-api-key
           authorizer:
             arn: ${self:provider.environment.COGNITO_ARN}
-  authorize-api-key:
+  authorise-api-key:
     handler: controllers/apiKey.authoriseKey
     events:
       - http:
