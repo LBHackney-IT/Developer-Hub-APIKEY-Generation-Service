@@ -1,4 +1,4 @@
-import { DynamoDB, AWSError, } from 'aws-sdk';
+import { DynamoDB, AWSError} from 'aws-sdk';
 
 export class dbService {
     private dynamoDBDocuClient: DynamoDB.DocumentClient;
