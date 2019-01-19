@@ -13,9 +13,10 @@ provider:
   region: eu-west-2
   environment:
     DYNAMODB_TABLE: tokenStore
-    COGNITO_USER_POOL_ID: eu-west-2_IwCxuEPy5
-    COGNITO_CLIENT_ID: 1ob4p9o2i9qv3nb82fogubao90
+    COGNITO_USER_POOL_ID: $(ssm:/token-generator-dev/test_cognito_user_pool_id)
+    COGNITO_CLIENT_ID: $(ssm:/token-generator-dev/test_cognito_client_id)
     COGNITO_ARN: arn:aws:cognito-idp:eu-west-2:775052747630:userpool/eu-west-2_IwCxuEPy5
+    ENCRYPT_SECRET: $(ssm:/token-generator-dev/encrypt_secret)
   iamRoleStatements:
     - Effect: Allow
       Action:
