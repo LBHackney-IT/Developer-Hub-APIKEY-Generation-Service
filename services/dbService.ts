@@ -4,15 +4,29 @@ export class dbService {
     private dynamoDBDocuClient: DynamoDB.DocumentClient;
     private tableName: string;
     
-    constructor() {
+    constructor(controller: string) {
         this.dynamoDBDocuClient = new DynamoDB.DocumentClient();
-        this.tableName = process.env.DYNAMODB_TABLE;
+        switch(controller){
+            case 'apiKey': {
+                this.tableName = process.env.APIKEY_DYNAMODB_TABLE;
+                break;
+            }
+            case 'api': {
+                this.tableName = process.env.API_DYNAMODB_TABLE;
+                break;
+            }
+            default: {
+                this.tableName = process.env.APIKEY_DYNAMODB_TABLE;
+                break;
+            }
+        }
     }
 
     async putItem(item) : Promise<any> {
         const params = {
             TableName: this.tableName,
-            Item : item  
+            Item : item ,
+            ReturnValues: "ALL_OLD" 
         };
 
         return this.dynamoDBDocuClient.put(params).promise();
