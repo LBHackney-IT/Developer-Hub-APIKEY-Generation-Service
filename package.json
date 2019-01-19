@@ -9,6 +9,7 @@
   "dependencies": {
     "@types/aws-sdk": "^2.7.0",
     "aws-sdk": "^2.384.0",
+    "crypto-js": "^3.1.9-1",
     "serverless-dynamodb-local": "^0.2.36"
   },
   "devDependencies": {

@@ -1,11 +1,10 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
 import { AWSError } from 'aws-sdk';
 import { dbService } from '../services/dbService';
-import { tokenService } from '../services/tokenService';
+import { apiKeyService } from '../services/apiKeyService';
 import { generateID } from '../helper';
 import { I_tokenBody } from '../interfaces';
 import { responseService } from '../services/responseService';
-import { authService } from '../services/authService';
 
 export const createKey: APIGatewayProxyHandler = async (event, context) => {
   try {
@@ -21,7 +20,7 @@ export const createKey: APIGatewayProxyHandler = async (event, context) => {
       id: generateID(cognitoUsername, apiID),
       cognitoUsername: cognitoUsername,
       apiID: apiID,
-      token: tokenService.create(),
+      apiKey: apiKeyService.create(),
       createdAt: Date.now(),
       verified: false
     };
@@ -55,9 +54,12 @@ export const readKey: APIGatewayProxyHandler = async (event, context) => {
 
     await db.getItem(id)
     .then((data) => {
-      response = data.Item;
+      response = {
+        apiKey: apiKeyService.decrypt(data.Item['apiKey'])
+      }
     })
     .catch((error: AWSError) => {
+      console.log(error);
       throw new Error(error.message);
     });
 
