@@ -12,7 +12,8 @@ provider:
   runtime: nodejs8.10
   region: eu-west-2
   environment:
-    DYNAMODB_TABLE: tokenStore
+    APIKEY_DYNAMODB_TABLE: apiKeyStore
+    API_DYNAMODB_TABLE: apiStore
     COGNITO_USER_POOL_ID: $(ssm:/token-generator-dev/test_cognito_user_pool_id)
     COGNITO_CLIENT_ID: $(ssm:/token-generator-dev/test_cognito_client_id)
     COGNITO_ARN: arn:aws:cognito-idp:eu-west-2:775052747630:userpool/eu-west-2_IwCxuEPy5
@@ -26,46 +27,71 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
-      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.APIKEY_DYNAMODB_TABLE}"
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.API_DYNAMODB_TABLE}"
 
 functions:
   create-api-key:
-    handler: controllers/apiKey.createKey
+    handler: controllers/apiKeyController.createKey
     events:
       - http:
           method: post
-          path: create-api-key
+          path: api-key
           authorizer:
             arn: ${self:provider.environment.COGNITO_ARN}
   read-api-key:
-    handler: controllers/apiKey.readKey
+    handler: controllers/apiKeyController.readKey
     events:
       - http:
           method: get
-          path: read-api-key
+          path: api-key
           authorizer:
             arn: ${self:provider.environment.COGNITO_ARN}
   verify-api-key:
-    handler: controllers/apiKey.verifyKey
+    handler: controllers/apiKeyController.verifyKey
     events:
       - http:
           method: post
-          path: verify-api-key
+          path: api-key/verify
           authorizer:
             arn: ${self:provider.environment.COGNITO_ARN}
   authorise-api-key:
-    handler: controllers/apiKey.authoriseKey
+    handler: controllers/apiKeyController.authoriseKey
     events:
       - http:
           method: post
-          path: authorise-api-key
+          path: api-key/authorise
+  create-api:
+    handler: controllers/apiController.createApi
+    events:
+      - http:
+          method: post
+          path: api
+          authorizer:
+            arn: ${self:provider.environment.COGNITO_ARN}
+  read-api:
+    handler: controllers/apiController.getApi
+    events:
+      - http:
+          method: get
+          path: api
+          authorizer:
+            arn: ${self:provider.environment.COGNITO_ARN}       
 
 resources:
   Resources:
     TokenStore:
       Type: 'AWS::DynamoDB::Table'
       Properties:
-        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+        TableName: ${self:provider.environment.APIKEY_DYNAMODB_TABLE}
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S
@@ -73,6 +99,19 @@ resources:
           - AttributeName: id
             KeyType: HASH
         ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
-
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+    
+    ApiStore:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        TableName: ${self:provider.environment.API_DYNAMODB_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
