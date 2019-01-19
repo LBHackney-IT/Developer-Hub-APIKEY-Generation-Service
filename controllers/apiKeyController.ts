@@ -8,13 +8,16 @@ import { responseService } from '../services/responseService';
 
 export const createKey: APIGatewayProxyHandler = async (event, context) => {
   try {
-    
     let response;
-    const db: dbService = new dbService();
+    const db: dbService = new dbService('apiKey');
     const body: I_tokenBody = JSON.parse(event.body);
     
-    const cognitoUsername = body.cognito_username;
-    const apiID = body.api_id;
+    const cognitoUsername: string = body.cognito_username;
+    const apiID: string = body.api_id;
+
+    if(apiID == null || cognitoUsername == null) {
+      throw new Error("Request variables are missing");
+    }
     
     const item = {
       id: generateID(cognitoUsername, apiID),
@@ -27,7 +30,11 @@ export const createKey: APIGatewayProxyHandler = async (event, context) => {
 
     await db.putItem(item)
     .then((data) => {
-      response = data;
+      response = {
+        data: {
+          apiKey: apiKeyService.decrypt(data.Attributes.apiKey)
+        }
+      }
     })
     .catch((error: AWSError)=> {
       throw new Error(error.message)
@@ -45,17 +52,23 @@ export const createKey: APIGatewayProxyHandler = async (event, context) => {
 export const readKey: APIGatewayProxyHandler = async (event, context) => {
   try {
     let response;  
-    const db: dbService = new dbService();
+    const db: dbService = new dbService('apiKey');
     const body = event.queryStringParameters;
-    // add if check to see if it has cognito username and api_id
     const cognitoUsername: string = body.cognito_username;
     const apiID: string = body.api_id;
+    
+    if(apiID == null || cognitoUsername == null) {
+      throw new Error("Request variables are missing");
+    }
+
     const id: string = generateID(body.cognito_username, body.api_id);
 
     await db.getItem(id)
     .then((data) => {
       response = {
-        apiKey: apiKeyService.decrypt(data.Item['apiKey'])
+        data: {
+          apiKey: apiKeyService.decrypt(data.Item.apiKey)
+        }
       }
     })
     .catch((error: AWSError) => {
@@ -74,16 +87,23 @@ export const verifyKey: APIGatewayProxyHandler = async (event, context) => {
   try {
     // check user is admin
     let response;
-    const db: dbService = new dbService();
+    const db: dbService = new dbService('apiKey');
     const body: I_tokenBody = JSON.parse(event.body);
     const cognitoUsername = body.cognito_username;
     const apiID = body.api_id;
+
+    if(apiID == null || cognitoUsername == null) {
+      throw new Error("Request variables are missing");
+    }
+
     const id = generateID(cognitoUsername, apiID);
 
     await db.verifyKey(id)
     .then((data) => {
       console.log(data);
-      response = data;
+      response = {
+        data: data.Attributes
+      };
     })
     .catch((error) => {
       console.log(error);
@@ -102,9 +122,15 @@ export const authoriseKey: APIGatewayProxyHandler = async (event, context) => {
   try {
     // Get ApiKey + API_ID
     let response;
-    const apiKey = "O7xGzeS78RrOe21a";
-    const apiID = "income_collection";
-    const db: dbService = new dbService();
+    const body = JSON.parse(event.body);
+    const apiKey = body.api_key;
+    const apiID = body.api_id;
+
+    if(apiID == null || apiKey == null) {
+      throw new Error("Request variables are missing");
+    }
+
+    const db: dbService = new dbService('apiKey');
 
     // Check if API Key and API_Key exists within DB
     await db.checkKey(apiKey, apiID)
@@ -120,6 +146,7 @@ export const authoriseKey: APIGatewayProxyHandler = async (event, context) => {
     return responseService.success(response);
 
   } catch (error) {
+
     return responseService.error(error.message, error.statusCode);  
   }
 
