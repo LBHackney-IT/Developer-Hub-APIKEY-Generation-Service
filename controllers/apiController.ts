@@ -3,15 +3,17 @@ import { AWSError } from 'aws-sdk';
 import { dbService } from '../services/dbService';
 import { IApi } from '../interfaces/IApi';
 import { responseService } from '../services/responseService';
-import { generateID } from '../helper';
+
+const DATABASE_ID = 'api';
 
 export const createApi: APIGatewayProxyHandler = async (event, context) => {
     try {
         let response;
-        const db: dbService = new dbService('api');
+        const db: dbService = new dbService(DATABASE_ID);
         const body = JSON.parse(event.body);
     
-        const api: IApi = body.api;
+        const api: IApi = body;
+
     
         if(Object.keys(api).length == 0) {
             throw new Error("Request object is missing");
@@ -19,7 +21,10 @@ export const createApi: APIGatewayProxyHandler = async (event, context) => {
     
         await db.putItem(api)
         .then((data) => {
-            response = "Your api has been posted";
+            console.log(data);
+            response = {
+                body: data.Attributes
+            };
         })
         .catch((error: AWSError) => {
             throw new Error(error.message);
@@ -36,19 +41,19 @@ export const createApi: APIGatewayProxyHandler = async (event, context) => {
 export const getApi: APIGatewayProxyHandler = async (event, context) => {
     try {
         let response;  
-        const db: dbService = new dbService('apiKey');
-        const body = event.queryStringParameters;
-        const apiID: string = body.api_id;
+        const db: dbService = new dbService(DATABASE_ID);
+        const pathParameters = event.pathParameters;
+        const apiID: string = pathParameters.id;
         
         if(apiID == null) {
           throw new Error("Request variable is missing");
         }
-    
-        const id: string = generateID(body.cognito_username, body.api_id);
-    
-        await db.getItem(id)
+
+        await db.getItem(apiID)
         .then((data) => {
-          response = data.Item;
+          response =  {
+              body: data.Item
+          };
         })
         .catch((error: AWSError) => {
           console.log(error);
@@ -62,8 +67,24 @@ export const getApi: APIGatewayProxyHandler = async (event, context) => {
       } 
 }
 
-// export const getApis: APIGatewayProxyHandler = async (event, context) => {
-//     try {
+export const getApiList: APIGatewayProxyHandler = async (event, context) => {
+    try {
+        let response;  
+        const db: dbService = new dbService(DATABASE_ID);
+
+        await db.getAllItems()
+        .then((data) => {
+            response = data.Items
+            console.log(data);
+        })
+        .catch((error) => {
+            throw new Error(error.message);
+        });
+
+        return responseService.success(response);
         
-//     }
-// }
+    } catch(error) {
+        return responseService.error(error.message, error.statusCode);
+
+    }
+}
