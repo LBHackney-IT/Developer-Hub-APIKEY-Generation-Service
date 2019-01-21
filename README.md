@@ -1,87 +1,343 @@
-# Project Title
+# API Key Generator
 
-One Paragraph of project description goes here
+This microservice manages API keys and API information for the Development Hub.
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
 ### Prerequisites
 
-What things you need to install the software and how to install them
+AWS Cli
 
 ```
-Give examples
+install aws cli
 ```
 
 ### Installing
 
-A step by step series of examples that tell you how to get a development env running
 
-Say what the step will be
-
-```
-Give the example
-```
-
-And repeat
+Install NPM packages
 
 ```
-until finished
+npm install
 ```
 
-End with an example of getting some data out of the system or using it for a little demo
+### Run application locally
+
+```
+serverless offline start
+```
+
 
 ## Running the tests
 
 Explain how to run the automated tests for this system
 
-### Break down into end to end tests
 
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-### And coding style tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
 
 ## Deployment
 
-Add additional notes about how to deploy this on a live system
 
-## Built With
+```
+serverless deploy
+```
 
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
 
-## Contributing
+## Endpoints
 
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
 
-## Versioning
+### API Key
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
 
-## Authors
++ Get API Key
+```
+GET: /api-key?cognito_username={COGNITO_USERNAME}&api_id={API_ID}
+```
+#### Request Body
+```
+{}
+```
 
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+#### Response Body
+```
+{
+    "body": {
+        "apiKey": "xxxxxxxx",
+        "verified": false
+    }
+}
+```
 
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
++ Create API Key
 
-## License
+```
+POST: /api-key
+```
+#### Request Body
+```
+{
+	"cognito_username": "xxxx",
+	"api_id": "income_collection"
+}
+```
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
 
-## Acknowledgments
+#### Response Body
+```
+{
+    "body": {
+        "apiKey": "GDlLC3Fgejb5XEpz"
+    }
+}
+```
 
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
+
++ Get All API keys for a user
+```
+GET: /api-key/{COGNITO_USERNAME}
+```
+#### Request Body
+```
+{}
+```
+#### Response Body
+```
+{
+    "body": [
+                {
+                    "createdAt": 1548074985776,
+                    "cognitoUsername": "cognitoUsername1",
+                    "apiKey": "xxxxxx",
+                    "id": "cognitoUsername_apiID",
+                    "apiID": "income_collection",
+                    "verified": false
+                },
+                {
+                    "createdAt": 1548074985776,
+                    "cognitoUsername": "cognitoUsername2",
+                    "apiKey": "xxxxxx",
+                    "id": "cognitoUsername_apiID",
+                    "apiID": "income_collection",
+                    "verified": false
+                }
+            ]   
+}
+```
+
++ Verify API Key
+```
+POST: /api-key
+```
+#### Request Body
+```
+{
+	"cognito_username": "xxxx",
+	"api_id": "income_collection"
+}
+```
+
+#### Response Body
+```
+{
+    "body": {
+        "verified": true
+    }
+}
+```
+
+### API
+
++ Get API
+```
+GET: /api/{api_id}
+```
+#### Request Body
+```
+{}
+```
+
+#### Response Body
+```
+{
+    {
+        "body": {
+            "compliant": {
+                "build_run_stage": true,
+                "scalable_process": false,
+                "export_services": true,
+                "rapid_start_shutdown": false,
+                "revision_control": true,
+                "environment_config": true,
+                "dependency_management": true,
+                "decoupled_services": true,
+                "logging": false,
+                "stateless_process": true,
+                "maintain_consistency_between_stages": false,
+                "admin_management_process": false
+            },
+            "summary": "The Asbestos API provides asbestos related information on London Borough of Hackney property stock.",
+            "github_url": "https://github.com/LBHackney-IT/HackneyAsbestosAPI",
+            "owner": {
+                "name": "Name",
+                "contactDetails": "name@email.com"
+            },
+            "production": {
+                "deployed": true,
+                "healthStatus": true,
+                "url": "http://10.160.0.137:557/swagger/index.html",
+                "swagger_url": "http://10.160.0.137:557/swagger/index.html"
+            },
+            "description": "The Asbestos API provides asbestos related information on London Borough of Hackney property stock. This API provides data from PSI2000, a data source that used to be hosted on-prem and that is currently accessed externally as a software as a service. The endpoints of Asbestos API allow access to data about inspections carried on in properties via the property references. If there is one or more inspections for a property, the id's contained allows to query other specific in order to get more specific asbestos data about the property like rooms, floors or elements. The API also allows to access to the actual documents related to asbestos inspections on properties like photos, floorplans and reports.",
+            "id": "asbestos",
+            "staging": {
+                "deployed": true,
+                "healthStatus": true,
+                "url": "http://10.160.0.137:667/swagger/index.html",
+                "swagger_url": "http://10.160.0.137:667/swagger/index.html"
+            },
+            "title": "Asbestos API"
+    }
+}
+```
+
++ Create API
+```
+POST: /api
+```
+#### Request Body
+```
+{
+    "id": "income_collection",
+    "title": "Asbestos API",
+    "summary": "The Asbestos API provides asbestos related information on London Borough of Hackney property stock.",
+    "compliant": {
+      "revision_control": true,
+      "dependency_management": true,
+      "environment_config": true,
+      "decoupled_services": true,
+      "build_run_stage": true,
+      "stateless_process": true,
+      "export_services": true,
+      "scalable_process": false,
+      "rapid_start_shutdown": false,
+      "maintain_consistency_between_stages": false,
+      "logging": false,
+      "admin_management_process": false
+    },
+    "staging": {
+      "url": "http://10.160.0.137:667/swagger/index.html",
+      "swagger_url": "http://10.160.0.137:667/swagger/index.html",
+      "deployed": true, 
+      "healthStatus": true
+    },
+    "production": {
+      "url": "http://10.160.0.137:557/swagger/index.html",
+      "swagger_url": "http://10.160.0.137:557/swagger/index.html",
+      "deployed": true, 
+      "healthStatus": true
+    },
+    "github_url": "https://github.com/LBHackney-IT/HackneyAsbestosAPI",
+    "owner": {
+      "name": "Name",
+      "contactDetails": "name@email.com"
+    },
+    "description": "The Asbestos API provides asbestos related information on London Borough of Hackney property stock. This API provides data from PSI2000, a data source that used to be hosted on-prem and that is currently accessed externally as a software as a service. The endpoints of Asbestos API allow access to data about inspections carried on in properties via the property references. If there is one or more inspections for a property, the id's contained allows to query other specific in order to get more specific asbestos data about the property like rooms, floors or elements. The API also allows to access to the actual documents related to asbestos inspections on properties like photos, floorplans and reports." 
+  }
+```
+
+#### Response Body
+```
+{
+    "body": {
+        "compliant": {
+            "build_run_stage": true,
+            "scalable_process": false,
+            "export_services": true,
+            "rapid_start_shutdown": false,
+            "revision_control": true,
+            "environment_config": true,
+            "dependency_management": true,
+            "decoupled_services": true,
+            "logging": false,
+            "stateless_process": true,
+            "maintain_consistency_between_stages": false,
+            "admin_management_process": false
+        },
+        "summary": "The Asbestos API provides asbestos related information on London Borough of Hackney property stock.",
+        "github_url": "https://github.com/LBHackney-IT/HackneyAsbestosAPI",
+        "owner": {
+            "name": "Name",
+            "contactDetails": "name@email.com"
+        },
+        "production": {
+            "deployed": true,
+            "healthStatus": true,
+            "url": "http://10.160.0.137:557/swagger/index.html",
+            "swagger_url": "http://10.160.0.137:557/swagger/index.html"
+        },
+        "description": "The Asbestos API provides asbestos related information on London Borough of Hackney property stock. This API provides data from PSI2000, a data source that used to be hosted on-prem and that is currently accessed externally as a software as a service. The endpoints of Asbestos API allow access to data about inspections carried on in properties via the property references. If there is one or more inspections for a property, the id's contained allows to query other specific in order to get more specific asbestos data about the property like rooms, floors or elements. The API also allows to access to the actual documents related to asbestos inspections on properties like photos, floorplans and reports.",
+        "id": "income_collection",
+        "staging": {
+            "deployed": true,
+            "healthStatus": true,
+            "url": "http://10.160.0.137:667/swagger/index.html",
+            "swagger_url": "http://10.160.0.137:667/swagger/index.html"
+        },
+        "title": "Asbestos API"
+    }
+}
+```
+
++ Get All Apis
+```
+GET: /api
+```
+#### Request Body
+```
+{}
+```
+
+#### Response Body
+```
+{
+    {
+        "body": {
+            "compliant": {
+                "build_run_stage": true,
+                "scalable_process": false,
+                "export_services": true,
+                "rapid_start_shutdown": false,
+                "revision_control": true,
+                "environment_config": true,
+                "dependency_management": true,
+                "decoupled_services": true,
+                "logging": false,
+                "stateless_process": true,
+                "maintain_consistency_between_stages": false,
+                "admin_management_process": false
+            },
+            "summary": "The Asbestos API provides asbestos related information on London Borough of Hackney property stock.",
+            "github_url": "https://github.com/LBHackney-IT/HackneyAsbestosAPI",
+            "owner": {
+                "name": "Name",
+                "contactDetails": "name@email.com"
+            },
+            "production": {
+                "deployed": true,
+                "healthStatus": true,
+                "url": "http://10.160.0.137:557/swagger/index.html",
+                "swagger_url": "http://10.160.0.137:557/swagger/index.html"
+            },
+            "description": "The Asbestos API provides asbestos related information on London Borough of Hackney property stock. This API provides data from PSI2000, a data source that used to be hosted on-prem and that is currently accessed externally as a software as a service. The endpoints of Asbestos API allow access to data about inspections carried on in properties via the property references. If there is one or more inspections for a property, the id's contained allows to query other specific in order to get more specific asbestos data about the property like rooms, floors or elements. The API also allows to access to the actual documents related to asbestos inspections on properties like photos, floorplans and reports.",
+            "id": "asbestos",
+            "staging": {
+                "deployed": true,
+                "healthStatus": true,
+                "url": "http://10.160.0.137:667/swagger/index.html",
+                "swagger_url": "http://10.160.0.137:667/swagger/index.html"
+            },
+            "title": "Asbestos API"
+    }
+}
+```
