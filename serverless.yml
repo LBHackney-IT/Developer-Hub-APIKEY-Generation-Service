@@ -21,21 +21,18 @@ provider:
   iamRoleStatements:
     - Effect: Allow
       Action:
-        - dynamodb:Query
         - dynamodb:Scan
         - dynamodb:GetItem
         - dynamodb:PutItem
         - dynamodb:UpdateItem
-        - dynamodb:DeleteItem
+
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.APIKEY_DYNAMODB_TABLE}"
     - Effect: Allow
       Action:
-        - dynamodb:Query
         - dynamodb:Scan
         - dynamodb:GetItem
         - dynamodb:PutItem
         - dynamodb:UpdateItem
-        - dynamodb:DeleteItem
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.API_DYNAMODB_TABLE}"
 
 functions:
@@ -55,6 +52,16 @@ functions:
           path: api-key
           authorizer:
             arn: ${self:provider.environment.COGNITO_ARN}
+  read-api-keys-for-user:
+    handler: controllers/apiKeyController.readKeysForUser
+    events:
+      - http:
+          method: get
+          path: api-key/{cognito_username}
+          request:
+            parameters:
+              paths:
+                id: true
   verify-api-key:
     handler: controllers/apiKeyController.verifyKey
     events:
@@ -82,9 +89,18 @@ functions:
     events:
       - http:
           method: get
+          path: api/{id}
+          request:
+            parameters:
+              paths:
+                id: true
+  read-api-list:
+    handler: controllers/apiController.getApiList
+    events:
+      - http:
+          method: get
           path: api
-          authorizer:
-            arn: ${self:provider.environment.COGNITO_ARN}       
+       
 
 resources:
   Resources:
