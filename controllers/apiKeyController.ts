@@ -6,10 +6,12 @@ import { generateID } from '../helper';
 import { I_tokenBody } from '../interfaces';
 import { responseService } from '../services/responseService';
 
+const DATABASE_ID = 'apiKey';
+
 export const createKey: APIGatewayProxyHandler = async (event, context) => {
   try {
     let response;
-    const db: dbService = new dbService('apiKey');
+    const db: dbService = new dbService(DATABASE_ID);
     const body: I_tokenBody = JSON.parse(event.body);
     
     const cognitoUsername: string = body.cognito_username;
@@ -31,7 +33,7 @@ export const createKey: APIGatewayProxyHandler = async (event, context) => {
     await db.putItem(item)
     .then((data) => {
       response = {
-        data: {
+        body: {
           apiKey: apiKeyService.decrypt(data.Attributes.apiKey)
         }
       }
@@ -52,7 +54,7 @@ export const createKey: APIGatewayProxyHandler = async (event, context) => {
 export const readKey: APIGatewayProxyHandler = async (event, context) => {
   try {
     let response;  
-    const db: dbService = new dbService('apiKey');
+    const db: dbService = new dbService(DATABASE_ID);
     const body = event.queryStringParameters;
     const cognitoUsername: string = body.cognito_username;
     const apiID: string = body.api_id;
@@ -65,9 +67,11 @@ export const readKey: APIGatewayProxyHandler = async (event, context) => {
 
     await db.getItem(id)
     .then((data) => {
+      console.log(data);
       response = {
-        data: {
-          apiKey: apiKeyService.decrypt(data.Item.apiKey)
+        body: {
+          apiKey: apiKeyService.decrypt(data.Item.apiKey),
+          verified: data.Item.verified
         }
       }
     })
@@ -83,11 +87,43 @@ export const readKey: APIGatewayProxyHandler = async (event, context) => {
   }  
 };
 
+export const readKeysForUser: APIGatewayProxyHandler = async (event, context) => {
+  try {
+    let response;
+    const db: dbService = new dbService(DATABASE_ID);
+
+    const pathParameters = event.pathParameters;
+    const cognitoUsername: string = pathParameters.cognito_username;
+
+    if(cognitoUsername == null) {
+      throw new Error("Request variable is missing");
+    }
+
+    await db.getApiKeys(cognitoUsername)
+    .then((data) => {
+      console.log(response);
+      response = data.Items;
+    })
+    .catch((error) => {
+      console.log(error);
+      throw new Error(error.message);
+    });
+
+    return responseService.success(response);
+
+  } catch (error) {
+    return responseService.error(error.message, error.statusCode);
+    
+  }
+}
+
+
+
 export const verifyKey: APIGatewayProxyHandler = async (event, context) => {
   try {
     // check user is admin
     let response;
-    const db: dbService = new dbService('apiKey');
+    const db: dbService = new dbService(DATABASE_ID);
     const body: I_tokenBody = JSON.parse(event.body);
     const cognitoUsername = body.cognito_username;
     const apiID = body.api_id;
@@ -100,9 +136,8 @@ export const verifyKey: APIGatewayProxyHandler = async (event, context) => {
 
     await db.verifyKey(id)
     .then((data) => {
-      console.log(data);
       response = {
-        data: data.Attributes
+        body: data.Attributes
       };
     })
     .catch((error) => {
