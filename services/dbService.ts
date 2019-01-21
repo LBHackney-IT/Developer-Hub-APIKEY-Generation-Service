@@ -43,6 +43,14 @@ export class dbService {
         return this.dynamoDBDocuClient.get(params).promise();
     }
 
+    async getAllItems() : Promise <any> {
+        const params = {
+            TableName: this.tableName
+        }
+
+        return this.dynamoDBDocuClient.scan(params).promise();
+    }
+
     async verifyKey(id) : Promise<any> {
         const params = {
             TableName: this.tableName,
@@ -75,5 +83,14 @@ export class dbService {
         };
 
         return this.dynamoDBDocuClient.scan(params).promise();
+    }
+
+    async getApiKeys(cognitoUsername: string) : Promise<any> {
+        const params = {
+            TableName: this.tableName,
+            FilterExpressions: '#cognitoUsername = ' + cognitoUsername
+        }
+
+        return this.dynamoDBDocuClient.scan(params).promise();        
     }
 }
