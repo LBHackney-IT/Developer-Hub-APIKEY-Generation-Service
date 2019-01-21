@@ -89,7 +89,7 @@ export const readKey: APIGatewayProxyHandler = async (event, context) => {
 
 export const readKeysForUser: APIGatewayProxyHandler = async (event, context) => {
   try {
-    let response;
+    let response: object[];
     const db: dbService = new dbService(DATABASE_ID);
 
     const pathParameters = event.pathParameters;
@@ -103,6 +103,13 @@ export const readKeysForUser: APIGatewayProxyHandler = async (event, context) =>
     .then((data) => {
       console.log(response);
       response = data.Items;
+      response = response.map((item) => {
+      return {
+          apiID: item['apiID'],
+          apiKey: apiKeyService.decrypt(item['apiKey']),
+          verified: item['verified']
+        }
+      })
     })
     .catch((error) => {
       console.log(error);
