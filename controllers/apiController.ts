@@ -14,7 +14,6 @@ export const createApi: APIGatewayProxyHandler = async (event, context) => {
     
         const api: IApi = body;
 
-    
         if(Object.keys(api).length == 0) {
             throw new Error("Request object is missing");
         }
@@ -74,8 +73,9 @@ export const getApiList: APIGatewayProxyHandler = async (event, context) => {
 
         await db.getAllItems()
         .then((data) => {
-            response = data.Items
-            console.log(data);
+            response = {
+               body: data.Items
+            }
         })
         .catch((error) => {
             throw new Error(error.message);
