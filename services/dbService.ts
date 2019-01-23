@@ -5,6 +5,7 @@ export class dbService {
     private tableName: string;
     
     constructor(controller: string) {
+        
         this.dynamoDBDocuClient = new DynamoDB.DocumentClient();
         switch(controller){
             case 'apiKey': {
