@@ -5,6 +5,7 @@ import { apiKeyService } from '../services/apiKeyService';
 import { generateID } from '../helper';
 import { I_tokenBody } from '../interfaces';
 import { responseService } from '../services/responseService';
+import { IApi } from '../interfaces/IApi';
 
 const DATABASE_ID = 'apiKey';
 
@@ -100,21 +101,31 @@ export const readKeysForUser: APIGatewayProxyHandler = async (event, context) =>
     }
 
     await db.getApiKeys(cognitoUsername)
-    .then((data) => {
-      console.log(response);
+    .then((data)  =>  {
       response = data.Items;
-      response = response.map((item) => {
-      return {
-          apiID: item['apiID'],
-          apiKey: apiKeyService.decrypt(item['apiKey']),
-          verified: item['verified']
-        }
-      })
     })
     .catch((error) => {
       console.log(error);
       throw new Error(error.message);
     });
+
+    response = await Promise.all(response.map(async (item) => {
+      let api: IApi;
+      const apiDB: dbService = new dbService("api");
+      await apiDB.getItem(item['apiID'])
+      .then((data) => {
+        api = data.Item;
+      })
+      .catch((error) => {
+        throw new Error(error.message);
+      })
+    
+    return {
+        api: api,
+        apiKey: apiKeyService.decrypt(item['apiKey']),
+        verified: item['verified']
+      }
+    }));
 
     return responseService.success(response);
 
