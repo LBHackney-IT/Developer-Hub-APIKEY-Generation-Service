@@ -58,10 +58,21 @@ functions:
       - http:
           method: get
           path: api-key/{cognito_username}
+          authorizer:
+            arn: ${self:provider.environment.COGNITO_ARN}
           request:
             parameters:
               paths:
                 id: true
+  read-all-unverified-keys:
+    handler: controllers/apiKeyController.readAllUnVerifiedKeys
+    events: 
+      - http:
+          method: get
+          path: api-key/unverified
+          authorizer:
+            arn: ${self:provider.environment.COGNITO_ARN}
+
   verify-api-key:
     handler: controllers/apiKeyController.verifyKey
     events:
