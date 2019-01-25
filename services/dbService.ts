@@ -86,10 +86,23 @@ export class dbService {
         return this.dynamoDBDocuClient.scan(params).promise();
     }
 
-    async getApiKeys(cognitoUsername: string) : Promise<any> {
+    async getApiKeysForUsername(cognitoUsername: string) : Promise<any> {
+        
         const params = {
             TableName: this.tableName,
-            FilterExpressions: '#cognitoUsername = ' + cognitoUsername
+            FilterExpression: 'cognitoUsername = :cognitoUsername',
+            ExpressionAttributeValues: {':cognitoUsername': cognitoUsername}
+        }
+
+        return this.dynamoDBDocuClient.scan(params).promise();        
+    }
+
+    async getApiKeysForUnVerifiedUsers() : Promise<any> {
+        
+        const params = {
+            TableName: this.tableName,
+            FilterExpression: 'verified = :verified',
+            ExpressionAttributeValues: {':verified': false}
         }
 
         return this.dynamoDBDocuClient.scan(params).promise();        

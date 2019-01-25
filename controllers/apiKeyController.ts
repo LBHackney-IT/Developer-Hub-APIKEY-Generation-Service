@@ -17,8 +17,9 @@ export const createKey: APIGatewayProxyHandler = async (event, context) => {
     
     const cognitoUsername: string = body.cognito_username;
     const apiID: string = body.api_id;
+    const email: string = body.email;
 
-    if(apiID == null || cognitoUsername == null) {
+    if(apiID == null || cognitoUsername == null || email == null) {
       throw new Error("Request variables are missing");
     }
     
@@ -26,10 +27,13 @@ export const createKey: APIGatewayProxyHandler = async (event, context) => {
       id: generateID(cognitoUsername, apiID),
       cognitoUsername: cognitoUsername,
       apiID: apiID,
+      email: email,
       apiKey: apiKeyService.create(),
       createdAt: Date.now(),
       verified: false
     };
+
+    console.log(1, item);
 
     await db.putItem(item)
     .then((data) => {
@@ -100,7 +104,7 @@ export const readKeysForUser: APIGatewayProxyHandler = async (event, context) =>
       throw new Error("Request variable is missing");
     }
 
-    await db.getApiKeys(cognitoUsername)
+    await db.getApiKeysForUsername(cognitoUsername)
     .then((data)  =>  {
       response = data.Items;
     })
@@ -135,6 +139,37 @@ export const readKeysForUser: APIGatewayProxyHandler = async (event, context) =>
   }
 }
 
+export const readAllUnVerifiedKeys: APIGatewayProxyHandler = async (event, context) => {
+
+  try {
+    let response;
+    const db: dbService = new dbService(DATABASE_ID);
+
+    await db.getApiKeysForUnVerifiedUsers()
+    .then((data) => {
+      const items = data.Items.map((item) => {
+        return {
+          email: item['email'],
+          apiID: item['apiID'],
+          verified: item['verified'],
+          cognitoUsername: item['cognitoUsername']
+        };
+      });
+      response = {
+        body: items
+      };
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+
+    return responseService.success(response);
+
+  } catch (error) {
+    
+    return responseService.error(error.message , error.statusCode);
+  }
+}
 
 
 export const verifyKey: APIGatewayProxyHandler = async (event, context) => {
