@@ -3,6 +3,9 @@ export class responseService {
     static success = (data: object | string) => {
         return {
             statusCode: 200,
+            headers: {
+                'Access-Control-Allow-Origin': '*'
+            },
             body: JSON.stringify(data)
         }
     }

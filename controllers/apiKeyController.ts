@@ -3,7 +3,6 @@ import { AWSError } from 'aws-sdk';
 import { dbService } from '../services/dbService';
 import { apiKeyService } from '../services/apiKeyService';
 import { generateID } from '../helper';
-import { I_tokenBody } from '../interfaces';
 import { responseService } from '../services/responseService';
 import { IApi } from '../interfaces/IApi';
 
@@ -13,7 +12,7 @@ export const createKey: APIGatewayProxyHandler = async (event, context) => {
   try {
     let response;
     const db: dbService = new dbService(DATABASE_ID);
-    const body: I_tokenBody = JSON.parse(event.body);
+    const body = JSON.parse(event.body);
     
     const cognitoUsername: string = body.cognito_username;
     const apiID: string = body.api_id;
@@ -177,7 +176,7 @@ export const verifyKey: APIGatewayProxyHandler = async (event, context) => {
     // check user is admin
     let response;
     const db: dbService = new dbService(DATABASE_ID);
-    const body: I_tokenBody = JSON.parse(event.body);
+    const body = JSON.parse(event.body);
     const cognitoUsername = body.cognito_username;
     const apiID = body.api_id;
 

@@ -16,7 +16,7 @@ provider:
     API_DYNAMODB_TABLE: apiStore
     COGNITO_USER_POOL_ID: $(ssm:/token-generator-dev/test_cognito_user_pool_id)
     COGNITO_CLIENT_ID: $(ssm:/token-generator-dev/test_cognito_client_id)
-    COGNITO_ARN: arn:aws:cognito-idp:eu-west-2:775052747630:userpool/eu-west-2_IwCxuEPy5
+    COGNITO_ARN: arn:aws:cognito-idp:eu-west-2:775052747630:userpool/eu-west-2_rQ3dI3Vbp
     ENCRYPT_SECRET: $(ssm:/token-generator-dev/encrypt_secret)
   iamRoleStatements:
     - Effect: Allow
@@ -42,6 +42,11 @@ functions:
       - http:
           method: post
           path: api-key
+          cors:
+            - enabled: true
+              origin: "*"
+              headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
+              methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
           authorizer:
             arn: ${self:provider.environment.COGNITO_ARN}
   read-api-key:
@@ -50,6 +55,11 @@ functions:
       - http:
           method: get
           path: api-key
+          cors:
+            - enabled: true
+              origin: "*"
+              headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
+              methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
           authorizer:
             arn: ${self:provider.environment.COGNITO_ARN}
   read-api-keys-for-user:
@@ -58,6 +68,11 @@ functions:
       - http:
           method: get
           path: api-key/{cognito_username}
+          cors:
+            - enabled: true
+              origin: "*"
+              headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
+              methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
           authorizer:
             arn: ${self:provider.environment.COGNITO_ARN}
           request:
@@ -70,6 +85,11 @@ functions:
       - http:
           method: get
           path: api-key/unverified
+          cors:
+            - enabled: true
+              origin: "*"
+              headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
+              methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
           authorizer:
             arn: ${self:provider.environment.COGNITO_ARN}
 
@@ -79,6 +99,11 @@ functions:
       - http:
           method: post
           path: api-key/verify
+          cors:
+            - enabled: true
+              origin: "*"
+              headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
+              methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
           authorizer:
             arn: ${self:provider.environment.COGNITO_ARN}
   authorise-api-key:
@@ -86,6 +111,11 @@ functions:
     events:
       - http:
           method: post
+          cors:
+            - enabled: true
+              origin: "*"
+              headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
+              methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
           path: api-key/authorise
   create-api:
     handler: controllers/apiController.createApi
@@ -93,6 +123,11 @@ functions:
       - http:
           method: post
           path: api
+          cors:
+            - enabled: true
+              origin: "*"
+              headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
+              methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
           authorizer:
             arn: ${self:provider.environment.COGNITO_ARN}
   read-api:
@@ -101,6 +136,11 @@ functions:
       - http:
           method: get
           path: api/{id}
+          cors:
+            - enabled: true
+              origin: "*"
+              headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
+              methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT"
           request:
             parameters:
               paths:
@@ -111,8 +151,8 @@ functions:
       - http:
           method: get
           path: api
+          cors: true
        
-
 resources:
   Resources:
     TokenStore:
