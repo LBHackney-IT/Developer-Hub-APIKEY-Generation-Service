@@ -18,6 +18,7 @@ provider:
     COGNITO_CLIENT_ID: $(ssm:/token-generator-dev/test_cognito_client_id)
     COGNITO_ARN: arn:aws:cognito-idp:eu-west-2:775052747630:userpool/eu-west-2_rQ3dI3Vbp
     ENCRYPT_SECRET: $(ssm:/token-generator-dev/encrypt_secret)
+    ELASTIC_SEARCH_DOMAIN_NAME: api-search
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -34,6 +35,14 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.API_DYNAMODB_TABLE}"
+    - Effect: Allow
+      Action:
+        - es:ESHttpPost
+        - es:ESHttpPut
+        - es:ESHttpDelete
+        - es:ESHttpGet
+      Resource:
+        - "arn:aws:es:${opt:region, self:provider.region}:*:domain/${self:provider.environment.ELASTIC_SEARCH_DOMAIN_NAME}/*"    
 
 functions:
   create-api-key:
@@ -182,3 +191,29 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 5
           WriteCapacityUnits: 5
+    ApiSearch:
+      Type: "AWS::Elasticsearch::Domain"
+      Properties:
+        ElasticsearchVersion: "6.3"
+        DomainName: 
+        ElasticsearchClusterConfig:
+          DedicatedMasterEnabled: false
+          InstanceCount: "1"
+          ZoneAwarenessEnabled: false
+          InstanceType: "t2.small.elasticsearch"
+        EBSOptions:
+          EBSEnabled: true
+          Iops: 0
+          VolumeSize: 10
+          VolumeType: "gp2"
+        AccessPolicies:
+          Version: "2012-10-17"
+          Statement:
+            -
+              Effect: "Allow"
+              Principal:
+                AWS: "*"
+              Action: "es:*"
+              Resource: "*"
+        AdvancedOptions:
+          rest.action.multi.allow_explicit_index: "true"
