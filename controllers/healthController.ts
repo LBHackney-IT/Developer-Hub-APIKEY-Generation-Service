@@ -27,37 +27,3 @@ export const healthCheck: APIGatewayProxyHandler = async (event, context) => {
         return responseService.error(error.message, error.statusCode);
     };
 }
-
-export const indexES: APIGatewayProxyHandler = async (event, context) => {
-    try {
-        const DATABASE_ID = 'api';
-        let listOfApis: IApi[];
-        let response;
-        const esService: elasticSearchService = new elasticSearchService();
-        const db: dbService = new dbService(DATABASE_ID);
-        await db.getAllItems()
-        .then((data) => {
-            listOfApis = data.Items
-        })
-        .catch((error) => {
-            throw new Error(error.message);
-        });
-
-        listOfApis.forEach( async (api) => {
-            await esService.index(api, process.env.ELASTIC_INDEX_API)
-            .then(() => {
-                response = {
-                    [api.id] : 'successful'
-                }
-            })
-            .catch((error) => {
-                throw new Error('Elastic search cluster is down');
-            });
-        });
-
-        return responseService.success(response);
-    
-    } catch(error) {
-        return responseService.error(error.message, error.statusCode);
-    };
-}
