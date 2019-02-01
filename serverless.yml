@@ -5,7 +5,6 @@ service:
 plugins:
   - serverless-webpack
   - serverless-offline
-  
 
 provider:
   name: aws
@@ -14,11 +13,16 @@ provider:
   environment:
     APIKEY_DYNAMODB_TABLE: apiKeyStore
     API_DYNAMODB_TABLE: apiStore
+    API_DYNAMODB_TABLE_STREAM_ARN:
     COGNITO_USER_POOL_ID: $(ssm:/token-generator-dev/test_cognito_user_pool_id)
     COGNITO_CLIENT_ID: $(ssm:/token-generator-dev/test_cognito_client_id)
     COGNITO_ARN: arn:aws:cognito-idp:eu-west-2:775052747630:userpool/eu-west-2_rQ3dI3Vbp
     ENCRYPT_SECRET: $(ssm:/token-generator-dev/encrypt_secret)
     ELASTIC_SEARCH_DOMAIN_NAME: api-search
+    ELASTIC_INDEX_API: api
+    ELASTIC_INDEX_SWAGGER: swagger
+    ELASTIC_SEARCH_ENDPOINT: https://search-api-search-i7mzbfy4dowrf6r3offrnrjhze.eu-west-2.es.amazonaws.com
+    ELASTIC_SEARCH_VERSION: "6.3"
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -35,6 +39,13 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.API_DYNAMODB_TABLE}"
+    - Effect: Allow
+      Action:
+        - dynamodb:DescribeStream
+        - dynamodb:GetRecords
+        - dynamodb:GetShardIterator
+        - dynamodb:ListStreams
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.API_DYNAMODB_TABLE}/stream/*"    
     - Effect: Allow
       Action:
         - es:ESHttpPost
@@ -161,6 +172,19 @@ functions:
           method: get
           path: api
           cors: true
+  health-check:
+    handler: controllers/healthController.healthCheck
+    events:
+      - http:
+          method: get
+          path: health
+  # index-elastic-search:
+  #   handler: controllers/healthController.indexES
+  #   events:
+  #     - http:
+  #         method: get
+  #         path: index-es
+
        
 resources:
   Resources:
@@ -194,8 +218,8 @@ resources:
     ApiSearch:
       Type: "AWS::Elasticsearch::Domain"
       Properties:
-        ElasticsearchVersion: "6.3"
-        DomainName: 
+        ElasticsearchVersion: ${self:provider.environment.ELASTIC_SEARCH_VERSION}
+        DomainName: ${self:provider.environment.ELASTIC_SEARCH_DOMAIN_NAME}
         ElasticsearchClusterConfig:
           DedicatedMasterEnabled: false
           InstanceCount: "1"
