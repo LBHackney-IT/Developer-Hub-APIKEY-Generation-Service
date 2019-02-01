@@ -56,6 +56,7 @@ provider:
         - "arn:aws:es:${opt:region, self:provider.region}:*:domain/${self:provider.environment.ELASTIC_SEARCH_DOMAIN_NAME}/*"    
 
 functions:
+  # APIKEY CONTROLLER
   create-api-key:
     handler: controllers/apiKeyController.createKey
     events:
@@ -137,6 +138,8 @@ functions:
               headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
               methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
           path: api-key/authorise
+          
+  # API CONTROLLER
   create-api:
     handler: controllers/apiController.createApi
     events:
@@ -179,7 +182,7 @@ functions:
           method: get
           path: health
   # index-elastic-search:
-  #   handler: controllers/healthController.indexES
+  #   handler: controllers/esController.indexES
   #   events:
   #     - http:
   #         method: get
