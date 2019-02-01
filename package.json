@@ -8,13 +8,18 @@
   },
   "dependencies": {
     "@types/aws-sdk": "^2.7.0",
+    "@types/elasticsearch": "^5.0.30",
+    "@types/http-aws-es": "^6.0.0",
     "aws-sdk": "^2.384.0",
     "crypto-js": "^3.1.9-1",
+    "elasticsearch": "^15.3.1",
+    "http-aws-es": "^6.0.0",
     "serverless-dynamodb-local": "^0.2.36"
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.1",
     "@types/node": "^8.0.57",
+    "dynamodb-stream-elasticsearch": "^2.2.1",
     "serverless-offline": "^3.32.1",
     "serverless-webpack": "^5.1.1",
     "source-map-support": "^0.5.6",
