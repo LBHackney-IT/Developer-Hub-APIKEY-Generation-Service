@@ -42,7 +42,6 @@ export const dynamoDBStreamToEs: DynamoDBStreamHandler = async (event: DynamoDBS
                         throw new Error(error.message)
                     });
                     break;
-                    
                 }
             }
         });

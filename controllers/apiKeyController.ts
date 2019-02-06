@@ -2,7 +2,7 @@ import { APIGatewayProxyHandler } from 'aws-lambda';
 import { AWSError } from 'aws-sdk';
 import { dbService } from '../services/dbService';
 import { apiKeyService } from '../services/apiKeyService';
-import { generateID } from '../helper';
+import { generateID, assignToBody } from '../helper';
 import { responseService } from '../services/responseService';
 import { IApi } from '../interfaces/IApi';
 
@@ -32,15 +32,12 @@ export const createKey: APIGatewayProxyHandler = async (event, context) => {
       verified: false
     };
 
-    console.log(1, item);
-
     await db.putItem(item)
     .then((data) => {
-      response = {
-        body: {
-          apiKey: apiKeyService.decrypt(data.Attributes.apiKey)
-        }
-      }
+      response = assignToBody({
+        apiKey: apiKeyService.decrypt(data.Attributes.apiKey),
+        verified: data.Item.verified
+      });
     })
     .catch((error: AWSError)=> {
       throw new Error(error.message)
@@ -72,12 +69,10 @@ export const readKey: APIGatewayProxyHandler = async (event, context) => {
     await db.getItem(id)
     .then((data) => {
       console.log(data);
-      response = {
-        body: {
-          apiKey: apiKeyService.decrypt(data.Item.apiKey),
-          verified: data.Item.verified
-        }
-      }
+      response = assignToBody({
+        apiKey: apiKeyService.decrypt(data.Item.apiKey),
+        verified: data.Item.verified
+      });
     })
     .catch((error: AWSError) => {
       console.log(error);
@@ -93,7 +88,7 @@ export const readKey: APIGatewayProxyHandler = async (event, context) => {
 
 export const readKeysForUser: APIGatewayProxyHandler = async (event, context) => {
   try {
-    let response: object[];
+    let _response: object[];
     const db: dbService = new dbService(DATABASE_ID);
 
     const pathParameters = event.pathParameters;
@@ -105,14 +100,14 @@ export const readKeysForUser: APIGatewayProxyHandler = async (event, context) =>
 
     await db.getApiKeysForUsername(cognitoUsername)
     .then((data)  =>  {
-      response = data.Items;
+      _response = data.Items;
     })
     .catch((error) => {
       console.log(error);
       throw new Error(error.message);
     });
 
-    response = await Promise.all(response.map(async (item) => {
+    _response = await Promise.all(_response.map(async (item) => {
       let api: IApi;
       const apiDB: dbService = new dbService("api");
       await apiDB.getItem(item['apiID'])
@@ -129,6 +124,8 @@ export const readKeysForUser: APIGatewayProxyHandler = async (event, context) =>
         verified: item['verified']
       }
     }));
+
+    const response = assignToBody(_response);
 
     return responseService.success(response);
 
@@ -154,9 +151,7 @@ export const readAllUnVerifiedKeys: APIGatewayProxyHandler = async (event, conte
           cognitoUsername: item['cognitoUsername']
         };
       });
-      response = {
-        body: items
-      };
+      response = assignToBody(items);
     })
     .catch((error) => {
       console.log(error);

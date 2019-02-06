@@ -5,6 +5,7 @@ service:
 plugins:
   - serverless-webpack
   - serverless-offline
+  - serverless-offline-scheduler
 
 provider:
   name: aws
@@ -13,7 +14,7 @@ provider:
   environment:
     APIKEY_DYNAMODB_TABLE: apiKeyStore
     API_DYNAMODB_TABLE: apiStore
-    API_DYNAMODB_TABLE_STREAM_ARN:
+    API_DYNAMODB_TABLE_STREAM_ARN: arn:aws:dynamodb:eu-west-2:775052747630:table/apiStore/stream/2019-01-31T16:00:00.871
     COGNITO_USER_POOL_ID: $(ssm:/token-generator-dev/test_cognito_user_pool_id)
     COGNITO_CLIENT_ID: $(ssm:/token-generator-dev/test_cognito_client_id)
     COGNITO_ARN: arn:aws:cognito-idp:eu-west-2:775052747630:userpool/eu-west-2_rQ3dI3Vbp
@@ -113,7 +114,6 @@ functions:
               methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
           authorizer:
             arn: ${self:provider.environment.COGNITO_ARN}
-
   verify-api-key:
     handler: controllers/apiKeyController.verifyKey
     events:
@@ -175,18 +175,42 @@ functions:
           method: get
           path: api
           cors: true
+  # HEALTH CONTROLLER
   health-check:
     handler: controllers/healthController.healthCheck
     events:
       - http:
           method: get
           path: health
-  # index-elastic-search:
-  #   handler: controllers/esController.indexES
+  # ES CONTROLLER
+  index-elastic-search:
+    handler: controllers/esController.indexES
+    events:
+      - http:
+          method: get
+          path: index-es
+  update-es-from-stream:
+    handler: controllers/esController.dynamoDBStreamToEs
+    events:
+      - stream:
+        type: dynamodb
+        arn: ${self:provider.environment.API_DYNAMODB_TABLE_STREAM_ARN}
+  # SWAGGER CONTROLLER
+  # get-swagger-info:
+  #   handler: controllers/swaggerController.getSwaggerJsons
   #   events:
-  #     - http:
-  #         method: get
-  #         path: index-es
+  #     - schedule: 
+  #         rate: cron(* * * * *)
+  #         enabled: true
+
+  get-swagger-info:
+    handler: controllers/swaggerController.getSwaggerJsons
+    events:
+      - http: 
+          method: get
+          path: swagger
+
+
 
        
 resources:

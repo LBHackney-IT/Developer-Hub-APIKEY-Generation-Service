@@ -1,6 +1,5 @@
 import * as elasticSearch from 'elasticsearch';
 import * as httpAwsEs from 'http-aws-es';
-import { elasticSearchIndexMap } from '../config/elasticSearchIndexMap';
 
 export class elasticSearchService {
 
@@ -49,6 +48,57 @@ export class elasticSearchService {
         return this.esClient.index(document);
     }
 
+    /**
+     *
+     *
+     * @param {string} id
+     * @param {string} index
+     * @returns {Promise<any>}
+     * @memberof elasticSearchService
+     */
+    async getItem(id: string, index: string): Promise<any> {
+        const document = {
+            index: index,
+            type: 'object',
+            id: id
+        };
+
+        return this.esClient.get(document);
+    }
+
+    /**
+     *
+     *
+     * @param {string} index
+     * @returns {Promise<any>}
+     * @memberof elasticSearchService
+     */
+    async getItems(index: string): Promise<any> {
+        const document = {
+            index: index,
+            q: 'approved:true'
+        };
+
+        return this.esClient.search(document);
+    }
+
+    async getSwaggerUrls(index: string): Promise<any> {
+        const document = {
+            index: index,
+            q: 'approved:true',
+            _source: ['id', 'production.swagger_url']        
+        };
+        return this.esClient.search(document);
+    }
+
+    /**
+     *
+     *
+     * @param {object} body
+     * @param {string} index
+     * @returns {Promise<any>}
+     * @memberof elasticSearchService
+     */
     async delete(body: object, index: string) : Promise<any> {
         if (!body['id'])
         {
@@ -63,6 +113,13 @@ export class elasticSearchService {
         return this.esClient.delete(document);
     }
 
+    /**
+     *
+     *
+     * @param {string} index
+     * @returns {Promise<any>}
+     * @memberof elasticSearchService
+     */
     async refresh(index: string) : Promise<any> {
         const params: elasticSearch.IndicesRefreshParams = {
             index: index
