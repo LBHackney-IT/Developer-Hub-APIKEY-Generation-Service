@@ -6,4 +6,5 @@ export interface ISwagger {
     description: string;
     paths: IPath[];
     version: string;
+    last_updated: number;
 }
