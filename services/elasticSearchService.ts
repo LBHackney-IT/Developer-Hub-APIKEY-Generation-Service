@@ -82,6 +82,13 @@ export class elasticSearchService {
         return this.esClient.search(document);
     }
 
+    /**
+     *
+     *
+     * @param {string} index
+     * @returns {Promise<any>}
+     * @memberof elasticSearchService
+     */
     async getSwaggerUrls(index: string): Promise<any> {
         const document = {
             index: index,
@@ -90,6 +97,23 @@ export class elasticSearchService {
         };
         return this.esClient.search(document);
     }
+
+    /**
+     *
+     *
+     * @param {string} index
+     * @returns {Promise<any>}
+     * @memberof elasticSearchService
+     */
+    async getSwaggerObjects(index: string) : Promise<any> {
+        const document = {
+            index: index,
+            q: ''
+        };
+
+        return this.esClient.search(document);
+    }
+
 
     /**
      *
