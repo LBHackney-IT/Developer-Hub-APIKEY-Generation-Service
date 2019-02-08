@@ -196,19 +196,47 @@ functions:
         type: dynamodb
         arn: ${self:provider.environment.API_DYNAMODB_TABLE_STREAM_ARN}
   # SWAGGER CONTROLLER
-  # get-swagger-info:
-  #   handler: controllers/swaggerController.getSwaggerJsons
+  # get-swagger-info-from-json:
+  #   handler: controllers/swaggerController.periodicallyIndexESWithSwaggerJson
   #   events:
   #     - schedule: 
   #         rate: cron(* * * * *)
   #         enabled: true
 
-  get-swagger-info:
-    handler: controllers/swaggerController.getSwaggerJsons
+  get-swagger-info-from-json:
+    handler: controllers/swaggerController.periodicallyIndexESWithSwaggerJson
     events:
       - http: 
           method: get
+          path: swagger-from-json
+  read-swagger-list:
+    handler: controllers/swaggerController.getSwaggerList
+    events: 
+      - http: 
+          method: get
           path: swagger
+          cors:
+            - enabled: true
+              origin: "*"
+              headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
+              methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT"          
+  read-swagger:
+    handler: controllers/swaggerController.getSwaggerPath
+    events:
+      - http:
+          method: get
+          path: swagger/{apiId}/{pathId}
+          cors:
+            - enabled: true
+              origin: "*"
+              headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
+              methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT"
+          request:
+            parameters:
+              paths:
+                apiId: true
+                pathId: true
+
 
 
 

@@ -1,13 +1,69 @@
-import { ScheduledHandler, ScheduledEvent,APIGatewayProxyHandler } from "aws-lambda";
+import { ScheduledHandler, ScheduledEvent, APIGatewayProxyHandler, APIGatewayEvent } from "aws-lambda";
 import { elasticSearchService } from '../services/elasticSearchService';
 import { responseService } from '../services/responseService';
 import Axios from "axios";
-import { createPathKey } from '../helper';
+import { createPathKey, assignToBody } from '../helper';
 import { ISwagger } from '../interfaces/ISwagger';
-const endInJsonRegex = '(.json)$';
 
-// export const getSwaggerJsons: ScheduledHandler = async (event: ScheduledEvent, context) => {
-    export const getSwaggerJsons: APIGatewayProxyHandler = async (event, context) => {
+const endInJsonRegex = '(.json)$';
+const SWAGGER_INDEX = process.env.ELASTIC_INDEX_SWAGGER;
+
+export const getSwaggerList: APIGatewayProxyHandler = async (event: APIGatewayEvent, context) => {
+    try {
+        let response;
+        const esService: elasticSearchService = new elasticSearchService();
+
+        await esService.getSwaggerObjects(SWAGGER_INDEX)
+        .then((data) => {
+            console.log(data);
+
+            response = data.hits.hits;
+            response = response.map((item) => {
+                return item['_source'];
+            });
+
+            response = assignToBody(response);
+        })
+        .catch((error) => {
+            throw new Error(error.message);
+        });
+
+        return responseService.success(response);
+    } catch (error) {
+        return responseService.error(error.message, error.statusCode);
+    }
+}
+
+export const getSwaggerPath: APIGatewayProxyHandler =  async (event: APIGatewayEvent, context) => {
+    try {
+        let response;
+        const pathParameters = event.pathParameters;
+        const apiId = pathParameters.apiId;
+        const pathId = pathParameters.pathId;
+
+        if (apiId == null || pathId == null) {
+            throw new Error("Request variable is missing");
+        }
+        const esService: elasticSearchService = new elasticSearchService();
+
+        esService.getItem(apiId, SWAGGER_INDEX)
+        .then((data) => {
+            response = assignToBody(data._source);
+        })
+        .catch((error) => {
+            throw new Error(error.message)
+        });
+
+        return responseService.success(response);
+    } catch (error) {
+        return responseService.error(error.message, error.statusCode);  
+    }
+}
+
+// export const periodicallyIndexESWithSwaggerJson: ScheduledHandler = async (event: ScheduledEvent, context) => {
+    export const periodicallyIndexESWithSwaggerJson: APIGatewayProxyHandler = async (event, context) => {
+        try {
+
     // Get List of Swagger URLS
     let response;
     const API_INDEX = process.env.ELASTIC_INDEX_API;
@@ -41,7 +97,8 @@ const endInJsonRegex = '(.json)$';
                     title: _response.data.info.title,
                     version: _response.data.info.version,
                     description: _response.data.info.description || null,
-                    paths: createPathKey(_response.data.paths)
+                    paths: createPathKey(_response.data.paths),
+                    last_updated: Date.now()
                 };
             }).catch((error) => {
                 console.log(error);
@@ -58,19 +115,20 @@ const endInJsonRegex = '(.json)$';
         return item !== null;
     });
 
+    // Add Objects To Elastic Search
+
     response.forEach((item) => {
         esService.index(item, SWAGGER_INDEX)
         .then((data) => {
-            console.log(data)
+            // console.log(data)
         })
         .catch((error) => {
             console.log(error.message)
         })
     });
 
-    return responseService.success(response);
-
-    // Add To Elastic Search
-}
-
-
+    return responseService.success(response);   
+} catch (error) {
+    return responseService.error(error.message, error.statusCode);   
+} 
+};
