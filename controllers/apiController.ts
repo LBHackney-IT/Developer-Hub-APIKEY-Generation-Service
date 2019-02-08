@@ -49,7 +49,6 @@ export const createApi: APIGatewayProxyHandler = async (event, context) => {
 export const getApi: APIGatewayProxyHandler = async (event, context) => {
     try {
         let response;
-        const esService: elasticSearchService = new elasticSearchService();
         const pathParameters = event.pathParameters;
         const apiID: string = pathParameters.id;
 
@@ -57,9 +56,10 @@ export const getApi: APIGatewayProxyHandler = async (event, context) => {
             throw new Error("Request variable is missing");
         }
 
+        const esService: elasticSearchService = new elasticSearchService();
+
         await esService.getItem(apiID, API_INDEX)
         .then((data) => {
-            console.log(data._source);
             response = assignToBody(data._source);
         }).catch((error) => {
             throw new Error(error.message);
@@ -75,7 +75,6 @@ export const getApi: APIGatewayProxyHandler = async (event, context) => {
 export const getApiList: APIGatewayProxyHandler = async (event, context) => {
     try {
         let response;
-        const db: dbService = new dbService(DATABASE_ID);
         const esService: elasticSearchService = new elasticSearchService();
 
         await esService.getItems(API_INDEX)
@@ -89,17 +88,6 @@ export const getApiList: APIGatewayProxyHandler = async (event, context) => {
         .catch((error) => {
             throw new Error(error.message);
         });
-
-
-
-        // await db.getAllItems()
-        //     .then((data) => {
-        //         response = assignToBody(data.Items);
-        //     })
-        //     .catch((error) => {
-        //         throw new Error(error.message);
-        //     });
-
         return responseService.success(response);
 
     } catch (error) {
