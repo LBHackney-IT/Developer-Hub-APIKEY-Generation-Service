@@ -203,47 +203,39 @@ functions:
   #         rate: cron(* * * * *)
   #         enabled: true
 
-  get-swagger-info-from-json:
-    handler: controllers/swaggerController.periodicallyIndexESWithSwaggerJson
-    events:
+  # get-swagger-info-from-json:
+  #   handler: controllers/swaggerController.periodicallyIndexESWithSwaggerJson
+  #   events:
+  #     - http: 
+  #         method: get
+  #         path: swagger-from-json
+  #         cors:
+  #           - enabled: true
+  #             origin: "*"
+  #             headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
+  #             methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
+  read-swagger-list:
+    handler: controllers/swaggerController.getSwaggerList
+    events: 
       - http: 
           method: get
-          path: swagger-from-json
+          path: swagger-paths
           cors:
             - enabled: true
               origin: "*"
               headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
-              methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
-  # read-swagger-list:
-  #   handler: controllers/swaggerController.getSwaggerList
-  #   events: 
-  #     - http: 
-  #         method: get
-  #         path: swagger
-  #         cors:
-  #           - enabled: true
-  #             origin: "*"
-  #             headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
-  #             methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT"          
-  # read-swagger:
-  #   handler: controllers/swaggerController.getSwaggerPath
-  #   events:
-  #     - http:
-  #         method: get
-  #         path: swagger/{apiId}/{pathId}
-  #         cors:
-  #           - enabled: true
-  #             origin: "*"
-  #             headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
-  #             methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT"
-  #         request:
-  #           parameters:
-  #             paths:
-  #               apiId: true
-  #               pathId: true
-
-
-
+              methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT"          
+  read-swagger:
+    handler: controllers/swaggerController.getSwaggerPath
+    events:
+      - http:
+          method: get
+          path: swagger-paths/{apiId}
+          cors: true
+          request:
+            parameters:
+              paths:
+                apiId: true
 
        
 resources:

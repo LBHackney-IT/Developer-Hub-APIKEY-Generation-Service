@@ -8,7 +8,7 @@ export class elasticSearchService {
         connectionClass: httpAwsEs,
         apiVersion: process.env.ELASTIC_SEARCH_VERSION
     };
-    private esClient: elasticSearch.Client; 
+    private esClient: elasticSearch.Client;
 
     constructor() {
         this.esClient = new elasticSearch.Client(this.options);
@@ -34,9 +34,8 @@ export class elasticSearchService {
      * @returns
      * @memberof elasticSearchService
      */
-    async index(body: object, index: string) : Promise<any> {
-        if (!body['id'])
-        {
+    async index(body: object, index: string): Promise<any> {
+        if (!body['id']) {
             throw new Error("The ID is missing from this object");
         }
         const document = {
@@ -74,9 +73,15 @@ export class elasticSearchService {
      * @memberof elasticSearchService
      */
     async getItems(index: string): Promise<any> {
+        const queryAllDocs = {
+            query: {
+                match_all: {}
+            }
+        }
         const document = {
             index: index,
-            q: 'approved:true'
+            // q: 'approved:true'
+            body: queryAllDocs
         };
 
         return this.esClient.search(document);
@@ -90,12 +95,12 @@ export class elasticSearchService {
      * @memberof elasticSearchService
      */
     async getSwaggerUrls(index: string): Promise<any> {
-        const document = {
+
+        const parameters = {
             index: index,
-            q: 'approved:true',
-            _source: ['id', 'production.swagger_url']        
+            _source: ['id', 'production.swagger_url']
         };
-        return this.esClient.search(document);
+        return this.esClient.search(parameters);
     }
 
     /**
@@ -105,10 +110,17 @@ export class elasticSearchService {
      * @returns {Promise<any>}
      * @memberof elasticSearchService
      */
-    async getSwaggerObjects(index: string) : Promise<any> {
+    async getSwaggerObjects(index: string): Promise<any> {
+        const queryAllDocs = {
+            query: {
+                match_all: {}
+            }
+        }
         const document = {
             index: index,
-            q: ''
+            body: queryAllDocs,
+            filterPath: ['hits.hits._source'],
+
         };
 
         return this.esClient.search(document);
@@ -123,9 +135,8 @@ export class elasticSearchService {
      * @returns {Promise<any>}
      * @memberof elasticSearchService
      */
-    async delete(body: object, index: string) : Promise<any> {
-        if (!body['id'])
-        {
+    async delete(body: object, index: string): Promise<any> {
+        if (!body['id']) {
             throw new Error("The ID is missing from this object");
         }
         const document = {
@@ -133,7 +144,7 @@ export class elasticSearchService {
             type: 'object',
             id: body['id']
         };
-        
+
         return this.esClient.delete(document);
     }
 
@@ -144,7 +155,7 @@ export class elasticSearchService {
      * @returns {Promise<any>}
      * @memberof elasticSearchService
      */
-    async refresh(index: string) : Promise<any> {
+    async refresh(index: string): Promise<any> {
         const params: elasticSearch.IndicesRefreshParams = {
             index: index
         };

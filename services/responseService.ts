@@ -4,7 +4,8 @@ export class responseService {
         return {
             statusCode: 200,
             headers: {
-                'Access-Control-Allow-Origin': '*'
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': true
             },
             body: JSON.stringify(data)
         }
@@ -13,6 +14,10 @@ export class responseService {
     static error = (message: string, statusCode: number) => {
         return {
             statusCode: statusCode,
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': true,
+            },
             body: JSON.stringify({
                 error: {
                    message: message
