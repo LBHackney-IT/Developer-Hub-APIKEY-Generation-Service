@@ -14,7 +14,7 @@ provider:
   environment:
     APIKEY_DYNAMODB_TABLE: apiKeyStore
     API_DYNAMODB_TABLE: apiStore
-    API_DYNAMODB_TABLE_STREAM_ARN: arn:aws:dynamodb:eu-west-2:775052747630:table/apiStore/stream/2019-01-31T16:00:00.871
+    API_DYNAMODB_TABLE_STREAM_ARN: arn:aws:dynamodb:${opt:region, self:provider.region}:775052747630:table/${self:provider.environment.API_DYNAMODB_TABLE}/stream/2019-01-31T16:00:00.871
     COGNITO_USER_POOL_ID: $(ssm:/token-generator-dev/test_cognito_user_pool_id)
     COGNITO_CLIENT_ID: $(ssm:/token-generator-dev/test_cognito_client_id)
     COGNITO_ARN: arn:aws:cognito-idp:eu-west-2:775052747630:userpool/eu-west-2_rQ3dI3Vbp
@@ -31,7 +31,6 @@ provider:
         - dynamodb:GetItem
         - dynamodb:PutItem
         - dynamodb:UpdateItem
-
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.APIKEY_DYNAMODB_TABLE}"
     - Effect: Allow
       Action:
@@ -46,7 +45,7 @@ provider:
         - dynamodb:GetRecords
         - dynamodb:GetShardIterator
         - dynamodb:ListStreams
-      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.API_DYNAMODB_TABLE}/stream/*"    
+      Resource: ${self:provider.environment.API_DYNAMODB_TABLE_STREAM_ARN}
     - Effect: Allow
       Action:
         - es:ESHttpPost
@@ -146,11 +145,7 @@ functions:
       - http:
           method: post
           path: api
-          cors:
-            - enabled: true
-              origin: "*"
-              headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
-              methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
+          cors: true
           authorizer:
             arn: ${self:provider.environment.COGNITO_ARN}
   read-api:
@@ -203,28 +198,24 @@ functions:
   #         rate: cron(* * * * *)
   #         enabled: true
 
-  # get-swagger-info-from-json:
-  #   handler: controllers/swaggerController.periodicallyIndexESWithSwaggerJson
-  #   events:
-  #     - http: 
-  #         method: get
-  #         path: swagger-from-json
-  #         cors:
-  #           - enabled: true
-  #             origin: "*"
-  #             headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
-  #             methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
+  get-swagger-info-from-json:
+    handler: controllers/swaggerController.periodicallyIndexESWithSwaggerJson
+    events:
+      - http: 
+          method: get
+          path: swagger-from-json
+          cors:
+            - enabled: true
+              origin: "*"
+              headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
+              methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
   read-swagger-list:
     handler: controllers/swaggerController.getSwaggerList
     events: 
       - http: 
           method: get
           path: swagger-paths
-          cors:
-            - enabled: true
-              origin: "*"
-              headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
-              methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT"          
+          cors: true        
   read-swagger:
     handler: controllers/swaggerController.getSwaggerPath
     events:
