@@ -57,7 +57,7 @@ export class dbService {
         const params = {
             TableName: this.tableName,
             Item : item ,
-            ReturnValues: "ALL_OLD" 
+            ReturnValues: "ALL_NEW" 
         };
 
         return this.dynamoDBDocuClient.put(params).promise();
