@@ -56,8 +56,7 @@ export class dbService {
     async putItem(item) : Promise<any> {
         const params = {
             TableName: this.tableName,
-            Item : item ,
-            ReturnValues: "ALL_NEW" 
+            Item : item
         };
 
         return this.dynamoDBDocuClient.put(params).promise();
