@@ -165,7 +165,6 @@ export const readAllUnVerifiedKeys: APIGatewayProxyHandler = async (event, conte
   }
 }
 
-
 export const verifyKey: APIGatewayProxyHandler = async (event, context) => {
   try {
     // check user is admin
@@ -218,7 +217,7 @@ export const authoriseKey: APIGatewayProxyHandler = async (event, context) => {
     await db.checkKey(apiKey, apiID)
     .then((data) => {
       console.log(data);
-      response = data.Items[0];
+      response = assignToBody(true);
     })
     .catch((error) => {
       console.log(error);
@@ -228,6 +227,10 @@ export const authoriseKey: APIGatewayProxyHandler = async (event, context) => {
     return responseService.success(response);
 
   } catch (error) {
+
+    const response = assignToBody(false);
+
+    return responseService.success(response);
 
     return responseService.error(error.message, error.statusCode);  
   }
