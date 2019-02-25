@@ -12,50 +12,82 @@ export const dynamoDBStreamToEs: DynamoDBStreamHandler = async (event: DynamoDBS
         // Instantiate Elastic Search Service
         const esService: elasticSearchService = new elasticSearchService();
         // Get Elastic search index
-        let index: string = process.env.ELASTIC_INDEX_API;
+        const index: string = process.env.ELASTIC_INDEX_API;
 
         // Loop through each record
         event.Records.forEach(async (record) => {
-            // Check the eventName for each record and perform action
-            switch (record.eventName) {
-                // Index new object when created in DynamoDB
-                case 'INSERT': {
-                    // Convert from AWS Object to JS Object
-                    const newObject = convert(record.dynamodb.NewImage);
-                    await esService.index(newObject, index)
-                        .then((data) => {
-                            console.log('success', data);
-                        }).catch((error) => {
-                            throw new Error(error.message)
-                        });
-                    break;
-                }
-                // Index object when modified in DynamoDB                
-                case 'MODIFY': {
-                    const newObject = convert(record.dynamodb.NewImage);
-                    await esService.index(newObject, index)
-                        .then((data) => {
-                            console.log(data);
-                        }).catch((error) => {
-                            throw new Error(error.message)
-                        });
-                    break;
-                }
-                // delete object from index when removed in DynamoDB                
-                case 'REMOVE': {
-                    const newObject = convert(record.dynamodb.NewImage);
-                    await esService.delete(newObject, index)
-                        .then((data) => {
-                            console.log(data);
-                        }).catch((error) => {
-                            throw new Error(error.message)
-                        });
-                    break;
-                }
+            if (record.eventName = 'INSERT') {
+                // Convert from AWS Object to JS Object
+                const newObject = convert(record.dynamodb.NewImage);
+                await esService.index(newObject, index)
+                    .then((data) => {
+                        console.log('success', data);
+                    }).catch((error) => {
+                        throw new Error(error.message)
+                    });
+            } else if(record.eventName = 'MODIFY') {
+                const newObject = convert(record.dynamodb.NewImage);
+                console.log(index, newObject);
+                await esService.index(newObject, index)
+                    .then(() => {
+                        console.log('success');
+                    })
+                    .catch((error) => {
+                        console.log('error');
+                        throw new Error(error.message)
+                    });
+            } else if (record.eventName = 'REMOVE') {
+                const newObject = convert(record.dynamodb.NewImage);
+                await esService.delete(newObject, index)
+                    .then((data) => {
+                        console.log(data);
+                    }).catch((error) => {
+                        throw new Error(error.message)
+                    });
             }
+            // Check the eventName for each record and perform action
+            // switch (record.eventName) {
+            //     // Index new object when created in DynamoDB
+            //     case 'INSERT': {
+            //         // Convert from AWS Object to JS Object
+            //         const newObject = convert(record.dynamodb.NewImage);
+            //         await esService.index(newObject, index)
+            //             .then((data) => {
+            //                 console.log('success', data);
+            //             }).catch((error) => {
+            //                 throw new Error(error.message)
+            //             });
+            //         break;
+            //     }
+            //     // Index object when modified in DynamoDB                
+            //     case 'MODIFY': {
+            //         const newObject = convert(record.dynamodb.NewImage);
+            //         console.log(index, newObject);
+            //         await esService.index(newObject, index)
+            //             .then(() => {
+            //                 console.log('success');
+            //             })
+            //             .catch((error) => {
+            //                 console.log('error');
+            //                 throw new Error(error.message)
+            //             });
+            //         break;
+            //     }
+            //     // delete object from index when removed in DynamoDB                
+            //     case 'REMOVE': {
+            //         const newObject = convert(record.dynamodb.NewImage);
+            //         await esService.delete(newObject, index)
+            //             .then((data) => {
+            //                 console.log(data);
+            //             }).catch((error) => {
+            //                 throw new Error(error.message)
+            //             });
+            //         break;
+            //     }
+            // }
         });
 
-        esService.refresh(index);
+        // esService.refresh(index);
 
 
     } catch (error) {
