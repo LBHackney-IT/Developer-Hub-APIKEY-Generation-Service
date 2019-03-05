@@ -1,5 +1,5 @@
-import { APIGatewayProxyHandler} from 'aws-lambda';
-import { AWSError} from 'aws-sdk';
+import { APIGatewayProxyHandler } from 'aws-lambda';
+import { AWSError } from 'aws-sdk';
 import { dbService } from '../services/dbService';
 import { IApi } from '../interfaces/IApi';
 import { responseService } from '../services/responseService';
@@ -21,6 +21,7 @@ export const createApi: APIGatewayProxyHandler = async (event, context) => {
     try {
         let response;
         const db: dbService = new dbService(DATABASE_ID);
+        const esService: elasticSearchService = new elasticSearchService();
         const body = JSON.parse(event.body);
 
         const api: IApi = body;
@@ -33,6 +34,13 @@ export const createApi: APIGatewayProxyHandler = async (event, context) => {
             .then((data) => {
                 console.log(data);
                 response = assignToBody(data.Attributes);
+            })
+            .catch((error: AWSError) => {
+                throw new Error(error.message);
+            });
+        await esService.index(api, process.env.ELASTIC_INDEX_API)
+            .then((data) => {
+                console.log(data);
             })
             .catch((error: AWSError) => {
                 throw new Error(error.message);
@@ -59,11 +67,11 @@ export const getApi: APIGatewayProxyHandler = async (event, context) => {
         const esService: elasticSearchService = new elasticSearchService();
 
         await esService.getItem(apiID, API_INDEX)
-        .then((data) => {
-            response = assignToBody(data._source);
-        }).catch((error) => {
-            throw new Error(error.message);
-        });
+            .then((data) => {
+                response = assignToBody(data._source);
+            }).catch((error) => {
+                throw new Error(error.message);
+            });
 
         return responseService.success(response);
     } catch (error) {
@@ -78,16 +86,16 @@ export const getApiList: APIGatewayProxyHandler = async (event, context) => {
         const esService: elasticSearchService = new elasticSearchService();
 
         await esService.getItems(API_INDEX)
-        .then((data) => {
-            response = data.hits.hits;
-            response = response.map((item) => {
-                return item['_source'];
+            .then((data) => {
+                response = data.hits.hits;
+                response = response.map((item) => {
+                    return item['_source'];
+                });
+                response = assignToBody(response);
+            })
+            .catch((error) => {
+                throw new Error(error.message);
             });
-            response = assignToBody(response);
-        })
-        .catch((error) => {
-            throw new Error(error.message);
-        });
         return responseService.success(response);
 
     } catch (error) {
