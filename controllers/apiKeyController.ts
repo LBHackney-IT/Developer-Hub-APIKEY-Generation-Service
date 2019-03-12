@@ -1,84 +1,46 @@
-import { APIGatewayProxyHandler } from 'aws-lambda';
+import { APIGatewayProxyHandler, CustomAuthorizerHandler, CustomAuthorizerEvent } from 'aws-lambda';
 import { AWSError } from 'aws-sdk';
 import { dbService } from '../services/dbService';
 import { apiKeyService } from '../services/apiKeyService';
-import { generateID, assignToBody } from '../helper';
+import { generateID, assignToBody, allKeysHaveValues } from '../helper';
 import { responseService } from '../services/responseService';
 import { IApi } from '../interfaces/IApi';
+import { ICreateKeyRequest, IReadKeyRequest, IVerifyKeyRequest } from '../interfaces/IRequests';
+import { ApiKey } from '../classes/ApiKey';
 
 const DATABASE_ID = 'apiKey';
 
 export const createKey: APIGatewayProxyHandler = async (event, context) => {
   try {
-    let response;
-    const db: dbService = new dbService(DATABASE_ID);
     const body = JSON.parse(event.body);
-    
-    const cognitoUsername: string = body.cognito_username;
-    const apiID: string = body.api_id;
-    const email: string = body.email;
-
-    if(apiID == null || cognitoUsername == null || email == null) {
-      throw new Error("Request variables are missing");
+    const createKeyRequest: ICreateKeyRequest = {
+      cognitoUsername: body.cognito_username,
+      apiId: body.api_id,
+      email: body.email
     }
-    
-    const item = {
-      id: generateID(cognitoUsername, apiID),
-      cognitoUsername: cognitoUsername,
-      apiID: apiID,
-      email: email,
-      apiKey: apiKeyService.create(),
-      createdAt: Date.now(),
-      verified: false
-    };
-
-    await db.putItem(item)
-    .then((data) => {
-      response = assignToBody({
-        apiKey: apiKeyService.decrypt(data.Attributes.apiKey),
-        verified: data.Item.verified
-      });
-    })
-    .catch((error: AWSError)=> {
-      throw new Error(error.message)
-    });
-
+    if(!allKeysHaveValues(createKeyRequest)) {
+      throw new Error('Request variable is missing');
+    }
+    const apiKey: ApiKey = new ApiKey();
+    const response = await apiKey.create(createKeyRequest);
     return responseService.success(response);
-
   } catch(error) {
-    
     return responseService.error(error.message, error.statusCode);
   }
-  
 };
 
 export const readKey: APIGatewayProxyHandler = async (event, context) => {
-  try {
-    let response;  
-    const db: dbService = new dbService(DATABASE_ID);
+  try {  
     const body = event.queryStringParameters;
-    const cognitoUsername: string = body.cognito_username;
-    const apiID: string = body.api_id;
-    
-    if(apiID == null || cognitoUsername == null) {
-      throw new Error("Request variables are missing");
+    const readKeyRequest: IReadKeyRequest = {
+      cognitoUsername: body.cognito_username,
+      apiId: body.api_id
     }
-
-    const id: string = generateID(body.cognito_username, body.api_id);
-
-    await db.getItem(id)
-    .then((data) => {
-      console.log(data);
-      response = assignToBody({
-        apiKey: apiKeyService.decrypt(data.Item.apiKey),
-        verified: data.Item.verified
-      });
-    })
-    .catch((error: AWSError) => {
-      console.log(error);
-      throw new Error(error.message);
-    });
-
+    if(!allKeysHaveValues(readKeyRequest)) {
+      throw new Error('Request variable is missing');
+    }
+    const apiKey: ApiKey = new ApiKey();
+    const response = apiKey.readSingle(readKeyRequest);
     return responseService.success(response);
   } catch (error) {
       
@@ -138,29 +100,10 @@ export const readKeysForUser: APIGatewayProxyHandler = async (event, context) =>
 export const readAllUnVerifiedKeys: APIGatewayProxyHandler = async (event, context) => {
 
   try {
-    let response;
-    const db: dbService = new dbService(DATABASE_ID);
-
-    await db.getApiKeysForUnVerifiedUsers()
-    .then((data) => {
-      const items = data.Items.map((item) => {
-        return {
-          email: item['email'],
-          apiID: item['apiID'],
-          verified: item['verified'],
-          cognitoUsername: item['cognitoUsername']
-        };
-      });
-      response = assignToBody(items);
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-
+    const apiKey: ApiKey = new ApiKey();
+    const response = await apiKey.readAllUnverified();
     return responseService.success(response);
-
   } catch (error) {
-    
     return responseService.error(error.message , error.statusCode);
   }
 }
@@ -168,28 +111,18 @@ export const readAllUnVerifiedKeys: APIGatewayProxyHandler = async (event, conte
 export const verifyKey: APIGatewayProxyHandler = async (event, context) => {
   try {
     // check user is admin
-    let response;
-    const db: dbService = new dbService(DATABASE_ID);
     const body = JSON.parse(event.body);
-    const cognitoUsername = body.cognito_username;
-    const apiID = body.api_id;
 
-    if(apiID == null || cognitoUsername == null) {
-      throw new Error("Request variables are missing");
+    const verifyKeyRequest: IVerifyKeyRequest = {
+      cognitoUsername: body.cognito_username,
+      apiId: body.api_id
     }
 
-    const id = generateID(cognitoUsername, apiID);
-
-    await db.verifyKey(id)
-    .then((data) => {
-      response = {
-        body: data.Attributes
-      };
-    })
-    .catch((error) => {
-      console.log(error);
-      throw new Error(error.message);
-    });
+    if(!allKeysHaveValues(verifyKeyRequest)) {
+      throw new Error('Request variable is missing');
+    }
+    const apiKey: ApiKey = new ApiKey();
+    const response = apiKey.verify(verifyKeyRequest);
 
     return responseService.success(response);
   } catch (error) {
@@ -198,41 +131,44 @@ export const verifyKey: APIGatewayProxyHandler = async (event, context) => {
   }
 }
 
-export const authoriseKey: APIGatewayProxyHandler = async (event, context) => {
+// export const authoriseKey: CustomAuthorizerHandler = async (event: CustomAuthorizerEvent, context) => {
 
-  try {
-    // Get ApiKey + API_ID
-    let response;
-    const body = JSON.parse(event.body);
-    const apiKey = body.api_key;
-    const apiID = body.api_id;
+//   try {
+//     const token = event.authorizationToken;
+//     const pathParamters = event.pathParameters;
+//     const methodArn = event.methodArn
+//     // Get ApiKey + API_ID
+//     let response;
+//     // const body = JSON.parse(event.body);
+//     // const apiKey = body.api_key;
+//     // const apiID = body.api_id;
 
-    if(apiID == null || apiKey == null) {
-      throw new Error("Request variables are missing");
-    }
+//     // if(apiID == null || apiKey == null) {
+//     //   throw new Error("Request variables are missing");
+//     // }
 
-    const db: dbService = new dbService('apiKey');
+//     // const db: dbService = new dbService('apiKey');
 
-    // Check if API Key and API_Key exists within DB
-    await db.checkKey(apiKey, apiID)
-    .then((data) => {
-      console.log(data);
-      response = assignToBody(true);
-    })
-    .catch((error) => {
-      console.log(error);
-      throw new Error(error.message);      
-    });
+//     // // Check if API Key and API_Key exists within DB
+//     // await db.checkKey(apiKey, apiID)
+//     // .then((data) => {
+//     //   console.log(data);
+//     //   response = assignToBody(true);
+//     // })
+//     // .catch((error) => {
+//     //   console.log(error);
+//     //   throw new Error(error.message);      
+//     // });
 
-    return responseService.success(response);
+//     return responseService.success(response);
 
-  } catch (error) {
+//   } catch (error) {
 
-    const response = assignToBody(false);
+//     const response = assignToBody(false);
 
-    return responseService.success(response);
+//     return responseService.success(response);
 
-    return responseService.error(error.message, error.statusCode);  
-  }
+//     return responseService.error(error.message, error.statusCode);  
+//   }
 
-}
+// }
