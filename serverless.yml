@@ -5,7 +5,7 @@ service:
 plugins:
   - serverless-webpack
   - serverless-offline
-  
+  - serverless-offline-scheduler
 
 provider:
   name: aws
@@ -14,11 +14,16 @@ provider:
   environment:
     APIKEY_DYNAMODB_TABLE: apiKeyStore
     API_DYNAMODB_TABLE: apiStore
+    API_DYNAMODB_TABLE_STREAM_ARN: arn:aws:dynamodb:${opt:region, self:provider.region}:775052747630:table/${self:provider.environment.API_DYNAMODB_TABLE}/stream/2019-01-31T16:00:00.871
     COGNITO_USER_POOL_ID: $(ssm:/token-generator-dev/test_cognito_user_pool_id)
     COGNITO_CLIENT_ID: $(ssm:/token-generator-dev/test_cognito_client_id)
     COGNITO_ARN: arn:aws:cognito-idp:eu-west-2:775052747630:userpool/eu-west-2_rQ3dI3Vbp
     ENCRYPT_SECRET: $(ssm:/token-generator-dev/encrypt_secret)
     ELASTIC_SEARCH_DOMAIN_NAME: api-search
+    ELASTIC_INDEX_API: api
+    ELASTIC_INDEX_SWAGGER: swagger
+    ELASTIC_SEARCH_ENDPOINT: https://search-api-search-i7mzbfy4dowrf6r3offrnrjhze.eu-west-2.es.amazonaws.com
+    ELASTIC_SEARCH_VERSION: "6.3"
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -26,7 +31,6 @@ provider:
         - dynamodb:GetItem
         - dynamodb:PutItem
         - dynamodb:UpdateItem
-
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.APIKEY_DYNAMODB_TABLE}"
     - Effect: Allow
       Action:
@@ -37,6 +41,13 @@ provider:
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.API_DYNAMODB_TABLE}"
     - Effect: Allow
       Action:
+        - dynamodb:DescribeStream
+        - dynamodb:GetRecords
+        - dynamodb:GetShardIterator
+        - dynamodb:ListStreams
+      Resource: ${self:provider.environment.API_DYNAMODB_TABLE_STREAM_ARN}
+    - Effect: Allow
+      Action:
         - es:ESHttpPost
         - es:ESHttpPut
         - es:ESHttpDelete
@@ -45,6 +56,7 @@ provider:
         - "arn:aws:es:${opt:region, self:provider.region}:*:domain/${self:provider.environment.ELASTIC_SEARCH_DOMAIN_NAME}/*"    
 
 functions:
+  # APIKEY CONTROLLER
   create-api-key:
     handler: controllers/apiKeyController.createKey
     events:
@@ -101,7 +113,6 @@ functions:
               methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
           authorizer:
             arn: ${self:provider.environment.COGNITO_ARN}
-
   verify-api-key:
     handler: controllers/apiKeyController.verifyKey
     events:
@@ -126,17 +137,15 @@ functions:
               headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
               methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
           path: api-key/authorise
+          
+  # API CONTROLLER
   create-api:
     handler: controllers/apiController.createApi
     events:
       - http:
           method: post
           path: api
-          cors:
-            - enabled: true
-              origin: "*"
-              headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
-              methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
+          cors: true
           authorizer:
             arn: ${self:provider.environment.COGNITO_ARN}
   read-api:
@@ -161,6 +170,64 @@ functions:
           method: get
           path: api
           cors: true
+  # HEALTH CONTROLLER
+  health-check:
+    handler: controllers/healthController.healthCheck
+    events:
+      - http:
+          method: get
+          path: health
+  # ES CONTROLLER
+  index-elastic-search:
+    handler: controllers/esController.indexES
+    events:
+      - http:
+          method: get
+          path: index-es
+  update-es-from-stream:
+    handler: controllers/esController.dynamoDBStreamToEs
+    events:
+      - stream:
+        type: dynamodb
+        arn: ${self:provider.environment.API_DYNAMODB_TABLE_STREAM_ARN}
+  # SWAGGER CONTROLLER
+  # get-swagger-info-from-json:
+  #   handler: controllers/swaggerController.periodicallyIndexESWithSwaggerJson
+  #   events:
+  #     - schedule: 
+  #         rate: cron(* * * * *)
+  #         enabled: true
+
+  get-swagger-info-from-json:
+    handler: controllers/swaggerController.periodicallyIndexESWithSwaggerJson
+    events:
+      - http: 
+          method: get
+          path: swagger-from-json
+          cors:
+            - enabled: true
+              origin: "*"
+              headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
+              methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
+  read-swagger-list:
+    handler: controllers/swaggerController.getSwaggerList
+    events: 
+      - http: 
+          method: get
+          path: swagger-paths
+          cors: true        
+  read-swagger:
+    handler: controllers/swaggerController.getSwaggerPath
+    events:
+      - http:
+          method: get
+          path: swagger-paths/{apiId}
+          cors: true
+          request:
+            parameters:
+              paths:
+                apiId: true
+
        
 resources:
   Resources:
@@ -194,8 +261,8 @@ resources:
     ApiSearch:
       Type: "AWS::Elasticsearch::Domain"
       Properties:
-        ElasticsearchVersion: "6.3"
-        DomainName: 
+        ElasticsearchVersion: ${self:provider.environment.ELASTIC_SEARCH_VERSION}
+        DomainName: ${self:provider.environment.ELASTIC_SEARCH_DOMAIN_NAME}
         ElasticsearchClusterConfig:
           DedicatedMasterEnabled: false
           InstanceCount: "1"
