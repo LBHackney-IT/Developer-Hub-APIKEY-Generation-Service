@@ -170,6 +170,19 @@ functions:
           method: get
           path: api
           cors: true
+  delete-api: 
+    handler: controllers/apiController.deleteApi
+    events:
+      - http:
+          method: delete
+          path: api/{id}
+          cors: true
+          request:
+            parameters:
+              paths:
+                id: true
+          authorizer:
+            arn: ${self:provider.environment.COGNITO_ARN}
   # HEALTH CONTROLLER
   health-check:
     handler: controllers/healthController.healthCheck
