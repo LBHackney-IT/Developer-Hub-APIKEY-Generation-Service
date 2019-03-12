@@ -38,7 +38,7 @@ export const dynamoDBStreamToEs: DynamoDBStreamHandler = async (event: DynamoDBS
                     });
             } else if (record.eventName = 'REMOVE') {
                 const newObject = convert(record.dynamodb.NewImage);
-                await esService.delete(newObject, index)
+                await esService.delete(newObject.id, index)
                     .then((data) => {
                         console.log(data);
                     }).catch((error) => {
