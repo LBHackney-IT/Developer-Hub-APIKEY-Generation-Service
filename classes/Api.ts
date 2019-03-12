@@ -90,7 +90,7 @@ export class Api {
     
             await db.deleteItem(id)
                 .then((data) => {
-                    response = assignToBody(data.Item);
+                    response = assignToBody(`${id} has been deleted`);
                 })
                 .catch((error) => {
                     throw new Error(error.message);
