@@ -126,17 +126,17 @@ functions:
               methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
           authorizer:
             arn: ${self:provider.environment.COGNITO_ARN}
-  authorise-api-key:
-    handler: controllers/apiKeyController.authoriseKey
-    events:
-      - http:
-          method: post
-          cors:
-            - enabled: true
-              origin: "*"
-              headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
-              methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
-          path: api-key/authorise
+  # authorise-api-key:
+  #   handler: controllers/apiKeyController.authoriseKey
+  #   events:
+  #     - http:
+  #         method: post
+  #         cors:
+  #           - enabled: true
+  #             origin: "*"
+  #             headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
+  #             methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
+  #         path: api-key/authorise
           
   # API CONTROLLER
   create-api:
