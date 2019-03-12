@@ -135,14 +135,14 @@ export class elasticSearchService {
      * @returns {Promise<any>}
      * @memberof elasticSearchService
      */
-    async delete(body: object, index: string): Promise<any> {
-        if (!body['id']) {
+    async delete(id: string, index: string): Promise<any> {
+        if (!id) {
             throw new Error("The ID is missing from this object");
         }
         const document = {
             index: index,
             type: 'object',
-            id: body['id']
+            id: id
         };
 
         return this.esClient.delete(document);
