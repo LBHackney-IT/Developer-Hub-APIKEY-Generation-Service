@@ -34,3 +34,12 @@ export const createPathKey = (pathObject: object): IPath[] => {
 
     return paths;
 }
+
+export const allKeysHaveValues = (item: object): boolean => {
+    const keys = Object.keys(item);
+    let response = true;
+    keys.forEach((key,index) => {
+        response = !item[key] ? false : response;
+    });
+    return response;
+}
