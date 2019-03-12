@@ -87,12 +87,22 @@ export class Api {
         try {
             let response;
             const db: dbService = new dbService(this.DATABASE_ID);
+            const esService: elasticSearchService = new elasticSearchService();
+
     
             await db.deleteItem(id)
                 .then((data) => {
                     response = assignToBody(`${id} has been deleted`);
                 })
                 .catch((error) => {
+                    throw new Error(error.message);
+                });
+
+                await esService.delete(id, process.env.ELASTIC_INDEX_API)
+                .then((data) => {
+                    console.log(data);
+                })
+                .catch((error: AWSError) => {
                     throw new Error(error.message);
                 });
     
