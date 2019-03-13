@@ -21,7 +21,8 @@ export class Api {
 
             await db.putItem(api)
                 .then((data) => {
-                    response = assignToBody(data.Attributes);
+                    console.log(data);
+                    response = assignToBody(api);
                 })
                 .catch((error: AWSError) => {
                     throw new Error(error.message);
@@ -92,7 +93,7 @@ export class Api {
     
             await db.deleteItem(id)
                 .then((data) => {
-                    response = assignToBody(`${id} has been deleted`);
+                    response = assignToBody(id);
                 })
                 .catch((error) => {
                     throw new Error(error.message);
