@@ -3,6 +3,8 @@ import { ICreateKeyRequest, IReadKeyRequest, IVerifyKeyRequest } from '../interf
 import { generateID, assignToBody } from '../helper';
 import { apiKeyService } from '../services/apiKeyService';
 import { AWSError } from 'aws-sdk';
+import { IApi } from '../interfaces/IApi';
+import { responseService } from '../services/responseService';
 export class ApiKey {
     private DATABASE_ID = 'apiKey';
 
@@ -69,6 +71,57 @@ export class ApiKey {
         }
     }
 
+    /**
+     *
+     *
+     * @memberof ApiKey
+     */
+    readAllForUser = async (cognitoUsername: string) => {
+        try {
+            let _response;
+            const db: dbService = new dbService(this.DATABASE_ID);
+
+            await db.getApiKeysForUsername(cognitoUsername)
+                .then((data) => {
+                    _response = data.Items;
+                })
+                .catch((error) => {
+                    console.log(error);
+                    throw new Error(error.message);
+                });
+
+            _response = await Promise.all(_response.map(async (item) => {
+                let api: IApi;
+                const apiDB: dbService = new dbService("api");
+                await apiDB.getItem(item['apiID'])
+                    .then((data) => {
+                        api = data.Item;
+                    })
+                    .catch((error) => {
+                        throw new Error(error.message);
+                    })
+
+                if(api) {
+                    return {
+                        api: api,
+                        apiKey: apiKeyService.decrypt(item['apiKey']),
+                        verified: item['verified']
+                    }
+                } else {
+                    return null;
+                }
+            }));
+
+            _response = _response.filter((item) => {
+                return item !== null;
+            });
+
+            return responseService.success(_response);
+        } catch (error) {
+            return responseService.error(error.message, error.statusCode);
+        }
+    }
+
     readAllUnverified = async () => {
         try {
             let response;
@@ -118,7 +171,7 @@ export class ApiKey {
     authorise = async () => {
         try {
         } catch (error) {
-            
+
         }
     }
 }
