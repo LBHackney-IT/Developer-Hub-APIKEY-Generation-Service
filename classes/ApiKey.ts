@@ -122,6 +122,11 @@ export class ApiKey {
         }
     }
 
+    /**
+     *
+     *
+     * @memberof ApiKey
+     */
     readAllUnverified = async () => {
         try {
             let response;
@@ -147,6 +152,11 @@ export class ApiKey {
         }
     }
 
+    /**
+     *
+     *
+     * @memberof ApiKey
+     */
     verify = async (verifyKeyRequest: IVerifyKeyRequest) => {
         try {
             let response;

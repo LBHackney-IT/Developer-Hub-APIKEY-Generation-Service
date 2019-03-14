@@ -59,7 +59,6 @@ export const readKeysForUser: APIGatewayProxyHandler = async (event, context) =>
 
   } catch (error) {
     return responseService.error(error.message, error.statusCode);
-    
   }
 }
 
