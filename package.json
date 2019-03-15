@@ -17,7 +17,9 @@
     "elasticsearch": "^15.3.1",
     "http-aws-es": "^6.0.0",
     "node.extend": "^2.0.2",
-    "serverless-dynamodb-local": "^0.2.36"
+    "serverless-dynamodb-local": "^0.2.36",
+    "winston": "^3.2.1",
+    "winston-papertrail": "^1.0.5"
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.1",
