@@ -55,10 +55,6 @@ export class ApiKey {
 
             await db.getItem(id)
                 .then((data) => {
-                    console.log(data);
-                    if(!data.Item || !data.Item.apiKey || !data.Item.verified) {
-                        throw new Error('The key does not exist');
-                    }
                     response = assignToBody({
                         apiKey: apiKeyService.decrypt(data.Item.apiKey),
                         verified: data.Item.verified
