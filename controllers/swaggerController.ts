@@ -5,27 +5,15 @@ import Axios from "axios";
 import { createPathKey, assignToBody } from '../helper';
 import { ISwagger } from '../interfaces/ISwagger';
 import { swaggerFiles } from '../swagger-store';
+import { Swagger } from '../classes/Swagger';
 
 const endInJsonRegex = '(.json)$';
 const SWAGGER_INDEX = process.env.ELASTIC_INDEX_SWAGGER;
 
 export const getSwaggerList: APIGatewayProxyHandler = async (event: APIGatewayEvent, context) => {
     try {
-        let response;
-        const esService: elasticSearchService = new elasticSearchService();
-
-        await esService.getSwaggerObjects(SWAGGER_INDEX)
-            .then((data) => {
-                response = data.hits.hits;
-                response = response.map((item) => {
-                    return item['_source'];
-                });
-
-                response = assignToBody(response);
-            })
-            .catch((error) => {
-                throw new Error(error.message);
-            });
+        const swagger: Swagger = new Swagger();
+        const response = await swagger.readAll();
 
         return responseService.success(response);
     } catch (error) {
@@ -35,7 +23,6 @@ export const getSwaggerList: APIGatewayProxyHandler = async (event: APIGatewayEv
 
 export const getSwaggerPath: APIGatewayProxyHandler = async (event: APIGatewayEvent, context) => {
     try {
-        let response;
         const pathParameters = event.pathParameters;
         const queryParameters = event.queryStringParameters;
         const apiId = pathParameters.apiId;
@@ -43,23 +30,9 @@ export const getSwaggerPath: APIGatewayProxyHandler = async (event: APIGatewayEv
         if (apiId == null || pathId == null) {
             throw new Error("Request variable is missing");
         }
-        const esService: elasticSearchService = new elasticSearchService();
-
-        await esService.getItem(apiId, SWAGGER_INDEX)
-            .then((data) => {
-                const swaggerObject: ISwagger = data._source
-                const path = swaggerObject.paths.filter((path) => {
-                    return path.id === pathId;
-                });
-                swaggerObject.paths = path;
-                response = assignToBody(swaggerObject);
-            })
-            .catch((error) => {
-                throw new Error(error.message)
-            });
-
+        const swagger: Swagger = new Swagger();
+        const response = await swagger.readSingle(apiId, pathId)
         return responseService.success(response);
-
     } catch (error) {
         return responseService.error(error.message, error.statusCode);
     }
