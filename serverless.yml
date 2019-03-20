@@ -207,9 +207,7 @@ functions:
   get-swagger-info-from-json:
     handler: controllers/swaggerController.periodicallyIndexESWithSwaggerJson
     events:
-      - schedule: 
-          rate: cron(* * * * *)
-          enabled: true
+      - schedule: rate(1 day)
 
   # get-swagger-info-from-json:
   #   handler: controllers/swaggerController.periodicallyIndexESWithSwaggerJson
