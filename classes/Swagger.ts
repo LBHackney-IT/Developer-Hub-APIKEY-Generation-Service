@@ -103,34 +103,39 @@ export class Swagger {
                         }).catch((error) => {
                             console.log(error);
                         });
+                        await esService.index(swaggerObject, this.SWAGGER_INDEX)
+                        .then((data) => {
+                            console.log(2, data)
+                        })
+                        .catch((error) => {
+                            throw new Error(error.message);
+                        })
 
                     return swaggerObject;
                 } else {
                     // If swagger url contains .json get the swagger object
                     return null;
                 }
-            }).filter((item) => {
-                return item !== null;
             }));
 
 
-            // response = response.filter((item) => {
-            //     return item !== null;
-            // });
+            response = response.filter((item) => {
+                return item !== null;
+            });
 
             console.log(1, response);
 
             // Add Objects To Elastic Search
 
-            response.forEach(async (item) => {
-                await esService.index(item, this.SWAGGER_INDEX)
-                    .then((data) => {
-                        console.log(2, data)
-                    })
-                    .catch((error) => {
-                        throw new Error(error.message);
-                    })
-            });
+            // response.forEach(async (item) => {
+            //     await esService.index(item, this.SWAGGER_INDEX)
+            //         .then((data) => {
+            //             console.log(2, data)
+            //         })
+            //         .catch((error) => {
+            //             throw new Error(error.message);
+            //         })
+            // });
 
         } catch (error) {
             throw new Error(error.message);
