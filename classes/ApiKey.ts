@@ -99,7 +99,7 @@ export class ApiKey {
                         throw new Error(error.message);
                     })
 
-                if(api) {
+                if (api) {
                     return {
                         api: api,
                         apiKey: apiKeyService.decrypt(item['apiKey']),
