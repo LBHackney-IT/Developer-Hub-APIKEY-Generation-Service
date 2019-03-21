@@ -61,7 +61,6 @@ export class elasticSearchService {
             type: 'object',
             id: id
         };
-
         return this.esClient.get(document);
     }
 
@@ -80,10 +79,8 @@ export class elasticSearchService {
         }
         const document = {
             index: index,
-            // q: 'approved:true'
             body: queryAllDocs
         };
-
         return this.esClient.search(document);
     }
 
@@ -120,7 +117,6 @@ export class elasticSearchService {
             index: index,
             body: queryAllDocs,
             filterPath: ['hits.hits._source'],
-
         };
 
         return this.esClient.search(document);
@@ -161,6 +157,4 @@ export class elasticSearchService {
         };
         return this.esClient.indices.refresh(params);
     }
-
-
 }

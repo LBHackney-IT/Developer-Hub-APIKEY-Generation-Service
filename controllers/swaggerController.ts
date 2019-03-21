@@ -39,14 +39,11 @@ export const getSwaggerPath: APIGatewayProxyHandler = async (event: APIGatewayEv
 }
 
 export const periodicallyIndexESWithSwaggerJson: ScheduledHandler = async (event: ScheduledEvent, context) => {
-// export const periodicallyIndexESWithSwaggerJson: APIGatewayProxyHandler = async (event, context) => {
     try {
         // Get List of Swagger URLS
         const swagger: Swagger = new Swagger();
         await swagger.indexESWithSwaggerJson();
-        // return responseService.success(response);
     } catch (error) {
         console.log(error);
-        // return responseService.error(error.message, error.statusCode);
     }
 };

@@ -126,17 +126,9 @@ functions:
               methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
           authorizer:
             arn: ${self:provider.environment.COGNITO_ARN}
-  # authorise-api-key:
-  #   handler: controllers/apiKeyController.authoriseKey
-  #   events:
-  #     - http:
-  #         method: post
-  #         cors:
-  #           - enabled: true
-  #             origin: "*"
-  #             headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
-  #             methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
-  #         path: api-key/authorise
+  authorise-api-key:
+    handler: controllers/apiKeyController.authoriseKey
+    cors: true
           
   # API CONTROLLER
   create-api:
@@ -207,19 +199,7 @@ functions:
   get-swagger-info-from-json:
     handler: controllers/swaggerController.periodicallyIndexESWithSwaggerJson
     events:
-      - schedule: rate(1 day)
-
-  # get-swagger-info-from-json:
-  #   handler: controllers/swaggerController.periodicallyIndexESWithSwaggerJson
-  #   events:
-  #     - http: 
-  #         method: get
-  #         path: swagger-from-json
-  #         cors:
-  #           - enabled: true
-  #             origin: "*"
-  #             headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
-  #             methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
+      - schedule: rate(1 day) 
   read-swagger-list:
     handler: controllers/swaggerController.getSwaggerList
     events: 
@@ -238,8 +218,7 @@ functions:
             parameters:
               paths:
                 apiId: true
-
-       
+    
 resources:
   Resources:
     TokenStore:

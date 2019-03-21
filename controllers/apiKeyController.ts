@@ -1,4 +1,4 @@
-import { APIGatewayProxyHandler, CustomAuthorizerHandler, CustomAuthorizerEvent } from 'aws-lambda';
+import { APIGatewayProxyHandler, CustomAuthorizerHandler, CustomAuthorizerEvent, Callback } from 'aws-lambda';
 import { AWSError } from 'aws-sdk';
 import { dbService } from '../services/dbService';
 import { apiKeyService } from '../services/apiKeyService';
@@ -96,44 +96,22 @@ export const verifyKey: APIGatewayProxyHandler = async (event, context) => {
   }
 }
 
-// export const authoriseKey: CustomAuthorizerHandler = async (event: CustomAuthorizerEvent, context) => {
+export const authoriseKey: CustomAuthorizerHandler = async (event: CustomAuthorizerEvent, context, callback: Callback) => {
 
-//   try {
-//     const token = event.authorizationToken;
-//     const pathParamters = event.pathParameters;
-//     const methodArn = event.methodArn
-//     // Get ApiKey + API_ID
-//     let response;
-//     // const body = JSON.parse(event.body);
-//     // const apiKey = body.api_key;
-//     // const apiID = body.api_id;
+  try {
+    const api_key = event.authorizationToken;
+    const method_arn = event.methodArn
+    const api_id = event.pathParameters.api_id;
+    let principal_id = '';
+    
+    if(api_id == null || api_key == null) {
+      throw new Error("Request variables are missing");
+    }
+    const apiKey: ApiKey = new ApiKey();
+    const policy = await apiKey.authorise(api_key, api_id, method_arn, principal_id);
+    callback(null, policy);
+  } catch (error) {
+    callback(error, "Unauthorized"); 
+  }
 
-//     // if(apiID == null || apiKey == null) {
-//     //   throw new Error("Request variables are missing");
-//     // }
-
-//     // const db: dbService = new dbService('apiKey');
-
-//     // // Check if API Key and API_Key exists within DB
-//     // await db.checkKey(apiKey, apiID)
-//     // .then((data) => {
-//     //   console.log(data);
-//     //   response = assignToBody(true);
-//     // })
-//     // .catch((error) => {
-//     //   console.log(error);
-//     //   throw new Error(error.message);      
-//     // });
-
-//     return responseService.success(response);
-
-//   } catch (error) {
-
-//     const response = assignToBody(false);
-
-//     return responseService.success(response);
-
-//     return responseService.error(error.message, error.statusCode);  
-//   }
-
-// }
+}
