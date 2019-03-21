@@ -102,8 +102,9 @@ export const authoriseKey: CustomAuthorizerHandler = async (event: CustomAuthori
     const api_key = event.authorizationToken;
     const method_arn = event.methodArn
     const api_id = event.pathParameters.api_id;
+    console.log(event);
     let principal_id = '';
-    
+
     if(api_id == null || api_key == null) {
       throw new Error("Request variables are missing");
     }
