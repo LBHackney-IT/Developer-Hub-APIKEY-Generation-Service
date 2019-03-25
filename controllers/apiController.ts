@@ -17,7 +17,6 @@ export const createApi: APIGatewayProxyHandler = async (event, context) => {
         if(!api.id) {
             api.id = api.title.replace(' ', '_').toLowerCase();
         }
-        console.log(api);
         if (Object.keys(api).length == 0) {
             throw new Error("Request object is missing");
         }
