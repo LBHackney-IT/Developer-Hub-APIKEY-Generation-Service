@@ -182,6 +182,7 @@ functions:
       - http:
           method: get
           path: health
+          authorizer: arn:aws:lambda:eu-west-2:775052747630:function:token-generator-dev-authorise-api-key
   # ES CONTROLLER
   index-elastic-search:
     handler: controllers/esController.indexES
