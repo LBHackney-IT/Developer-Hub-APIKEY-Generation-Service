@@ -129,13 +129,9 @@ export class dbService {
         
         const params = {
             TableName: this.tableName,
-            FilterExpression : '#token = :token and #apiID = :apiID',
-            ExpressionAttributeNames: {
-                "#token": "token",
-                "#apiID": "apiID"
-            },
+            FilterExpression : 'apiKey = :apiKey and apiID = :apiID',
             ExpressionAttributeValues: {
-                ":token": apiKey,
+                ":apiKey": apiKey,
                 ":apiID": apiID 
            }
         };
