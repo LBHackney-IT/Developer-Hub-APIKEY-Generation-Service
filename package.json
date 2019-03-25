@@ -4,7 +4,7 @@
   "description": "Serverless webpack example using Typescript",
   "main": "handler.js",
   "scripts": {
-    "test": "mocha -r ts-node/register /**/*.spec.ts"
+    "test": "mocha -r ts-node/register tests/**/*.spec.ts"
   },
   "dependencies": {
     "@types/aws-sdk": "^2.7.0",
