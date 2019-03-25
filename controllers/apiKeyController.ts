@@ -1,4 +1,4 @@
-import { APIGatewayProxyHandler, CustomAuthorizerHandler, CustomAuthorizerEvent, Callback } from 'aws-lambda';
+import { APIGatewayProxyHandler, CustomAuthorizerHandler, CustomAuthorizerEvent, Callback, CustomAuthorizerResult } from 'aws-lambda';
 import { AWSError } from 'aws-sdk';
 import { dbService } from '../services/dbService';
 import { apiKeyService } from '../services/apiKeyService';
@@ -6,6 +6,7 @@ import { generateID, assignToBody, allKeysHaveValues } from '../helper';
 import { responseService } from '../services/responseService';
 import { ICreateKeyRequest, IReadKeyRequest, IVerifyKeyRequest } from '../interfaces/IRequests';
 import { ApiKey } from '../classes/ApiKey';
+import { getApi } from './apiController';
 
 export const createKey: APIGatewayProxyHandler = async (event, context) => {
   try {
@@ -96,23 +97,25 @@ export const verifyKey: APIGatewayProxyHandler = async (event, context) => {
   }
 }
 
-export const authoriseKey: CustomAuthorizerHandler = async (event: CustomAuthorizerEvent, context, callback: Callback) => {
-
+export const authoriseKey = async (event, context) => {
   try {
-    const api_key = event.authorizationToken;
-    const method_arn = event.methodArn
-    const api_id = event.pathParameters.api_id;
-    console.log(event);
-    let principal_id = '';
+    event = JSON.parse(event.body);
+    let api_key = event.authorizationToken.substring(7);
+    const method_arn = event.methodArn;
+    const api_id = apiKeyService.getApiId(method_arn);
+    const principal_id = 'user';
 
     if(api_id == null || api_key == null) {
       throw new Error("Request variables are missing");
     }
     const apiKey: ApiKey = new ApiKey();
     const policy = await apiKey.authorise(api_key, api_id, method_arn, principal_id);
-    callback(null, policy);
+    return responseService.success(policy);
+    // callback(null, policy);
   } catch (error) {
-    callback(error, "Unauthorized"); 
+    console.log(error);
+    return responseService.error(error.message, error.statusCode);
+    // callback(error, "Unauthorized"); 
   }
 
 }

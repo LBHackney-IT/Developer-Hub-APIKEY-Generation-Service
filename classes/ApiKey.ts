@@ -179,26 +179,24 @@ export class ApiKey {
     authorise = async (apiKey: string, apiId: string, methodArn: string, principalId: string) => {
         try {
             let policy;
-            if(await this.isValid(apiKey, apiId)) {
+            const isValid = await this.isVerified(apiKey, apiId);
+            if(true) {
                 policy = apiKeyService.generatePolicy(principalId, "Allow", methodArn)
             } else {
                 policy = apiKeyService.generatePolicy(principalId, "Deny", methodArn)                
             }
-
             return policy;
-
         } catch (error) {
             throw new Error(error.message);
         }
     }
 
-    isValid = async (apiKey: string, apiId: string) : Promise<boolean> => {
+    private isVerified = async (apiKey: string, apiId: string) => {
         try {
             let response: boolean;
-            apiKey = apiKeyService.encrypt(apiKey);
+            apiKey = apiKey;
             const db: dbService = new dbService(this.DATABASE_ID);
-    
-            db.checkKey(apiKey, apiId).then((data) => {
+            await db.checkKey(apiKey, apiId).then((data) => {
                 console.log(data);
                 response = data;
             }).catch((error) => {

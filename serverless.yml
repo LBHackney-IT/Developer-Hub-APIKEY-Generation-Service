@@ -19,6 +19,7 @@ provider:
     COGNITO_CLIENT_ID: $(ssm:/token-generator-dev/test_cognito_client_id)
     COGNITO_ARN: arn:aws:cognito-idp:eu-west-2:775052747630:userpool/eu-west-2_rQ3dI3Vbp
     ENCRYPT_SECRET: $(ssm:/token-generator-dev/encrypt_secret)
+    ENCRYPT_IV: $(ssm:/token-generator-dev/encrypt_iv)
     ELASTIC_SEARCH_DOMAIN_NAME: api-search
     ELASTIC_INDEX_API: api
     ELASTIC_INDEX_SWAGGER: swagger
@@ -128,7 +129,11 @@ functions:
             arn: ${self:provider.environment.COGNITO_ARN}
   authorise-api-key:
     handler: controllers/apiKeyController.authoriseKey
-    cors: true
+    events:
+      - http:
+          method: post
+          path: api-key/authorise
+          cors: true
           
   # API CONTROLLER
   create-api:
