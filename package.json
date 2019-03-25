@@ -9,6 +9,7 @@
   "dependencies": {
     "@types/aws-sdk": "^2.7.0",
     "@types/axios": "^0.14.0",
+    "@types/crypto-js": "^3.1.43",
     "@types/elasticsearch": "^5.0.30",
     "@types/http-aws-es": "^6.0.0",
     "aws-sdk": "^2.384.0",
