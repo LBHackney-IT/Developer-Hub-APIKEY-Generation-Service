@@ -129,11 +129,6 @@ functions:
             arn: ${self:provider.environment.COGNITO_ARN}
   authorise-api-key:
     handler: controllers/apiKeyController.authoriseKey
-    events:
-      - http:
-          method: post
-          path: api-key/authorise
-          cors: true
           
   # API CONTROLLER
   create-api:

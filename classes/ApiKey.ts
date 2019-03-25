@@ -5,6 +5,7 @@ import { apiKeyService } from '../services/apiKeyService';
 import { AWSError } from 'aws-sdk';
 import { IApi } from '../interfaces/IApi';
 import { responseService } from '../services/responseService';
+import { IKey } from '../interfaces/IKey';
 export class ApiKey {
     private DATABASE_ID = 'apiKey';
 
@@ -176,37 +177,33 @@ export class ApiKey {
 
     }
 
-    authorise = async (apiKey: string, apiId: string, methodArn: string, principalId: string) => {
+    authorise = async (apiKey: string, apiId: string, methodArn: string) => {
         try {
             let policy;
-            const isValid = await this.isVerified(apiKey, apiId);
-            if(true) {
-                policy = apiKeyService.generatePolicy(principalId, "Allow", methodArn)
+            const key: IKey = await this.getKey(apiKey, apiId);
+            if (key.verified) {
+                policy = apiKeyService.generatePolicy(key.cognitoUsername, "Allow", methodArn)
             } else {
-                policy = apiKeyService.generatePolicy(principalId, "Deny", methodArn)                
+                policy = apiKeyService.generatePolicy(key.cognitoUsername, "Deny", methodArn)
             }
             return policy;
         } catch (error) {
-            throw new Error(error.message);
+            return apiKeyService.generatePolicy('user', "Deny", methodArn)
         }
     }
 
-    private isVerified = async (apiKey: string, apiId: string) => {
+    private getKey = async (apiKey: string, apiId: string): Promise<IKey> => {
         try {
-            let response: boolean;
-            apiKey = apiKey;
+            let response: IKey;
             const db: dbService = new dbService(this.DATABASE_ID);
             await db.checkKey(apiKey, apiId).then((data) => {
-                console.log(data);
-                response = data;
+                response = data.Items[0];
             }).catch((error) => {
                 throw new Error(error.message);
             });
-            
             return response;
         } catch (error) {
             throw new Error(error.message);
         }
-
     }
 }

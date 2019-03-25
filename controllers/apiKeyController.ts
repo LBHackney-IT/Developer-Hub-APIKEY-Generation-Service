@@ -97,25 +97,22 @@ export const verifyKey: APIGatewayProxyHandler = async (event, context) => {
   }
 }
 
-export const authoriseKey = async (event, context) => {
+export const authoriseKey = async (event, context, callback) => {
   try {
-    event = JSON.parse(event.body);
-    let api_key = event.authorizationToken.substring(7);
+    // event = JSON.parse(event.body);
+    const api_key = event.authorizationToken.substring(7);
     const method_arn = event.methodArn;
     const api_id = apiKeyService.getApiId(method_arn);
-    const principal_id = 'user';
 
     if(api_id == null || api_key == null) {
       throw new Error("Request variables are missing");
     }
     const apiKey: ApiKey = new ApiKey();
-    const policy = await apiKey.authorise(api_key, api_id, method_arn, principal_id);
-    return responseService.success(policy);
-    // callback(null, policy);
+    const policy = await apiKey.authorise(api_key, api_id, method_arn);
+    return policy;
+    callback(null, policy);
   } catch (error) {
-    console.log(error);
-    return responseService.error(error.message, error.statusCode);
-    // callback(error, "Unauthorized"); 
+    callback(error, "Unauthorized"); 
   }
 
 }
