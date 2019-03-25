@@ -56,7 +56,7 @@ export class ApiKey {
             await db.getItem(id)
                 .then((data) => {
                     response = assignToBody({
-                        apiKey: apiKeyService.decrypt(data.Item.apiKey),
+                        apiKey: data.Item.apiKey,
                         verified: data.Item.verified
                     });
                 })
@@ -102,7 +102,7 @@ export class ApiKey {
                 if (api) {
                     return {
                         api: api,
-                        apiKey: apiKeyService.decrypt(item['apiKey']),
+                        apiKey: item['apiKey'],
                         verified: item['verified']
                     }
                 } else {
