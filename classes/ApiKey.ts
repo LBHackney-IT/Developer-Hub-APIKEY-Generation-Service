@@ -25,7 +25,8 @@ export class ApiKey {
                 email: createKeyRequest.email,
                 apiKey: apiKeyService.create(),
                 createdAt: Date.now(),
-                verified: false
+                verified: false, 
+                last_accessed: Date.now()
             };
 
             await db.putItem(item)
