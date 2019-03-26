@@ -3,12 +3,12 @@ import * as httpAwsEs from 'http-aws-es';
 
 export class elasticSearchService {
 
-    private options = {
+    options = {
         hosts: [process.env.ELASTIC_SEARCH_ENDPOINT],
         connectionClass: httpAwsEs,
         apiVersion: process.env.ELASTIC_SEARCH_VERSION
     };
-    private esClient: elasticSearch.Client;
+    esClient: elasticSearch.Client;
 
     constructor() {
         this.esClient = new elasticSearch.Client(this.options);
