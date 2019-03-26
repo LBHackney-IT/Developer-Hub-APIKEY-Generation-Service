@@ -80,8 +80,10 @@ export class ApiKey {
         try {
             let _response;
             const db: dbService = new dbService(this.DATABASE_ID);
-
-            await db.getApiKeysForUsername(cognitoUsername)
+            const params = {
+                cognitoUsername: cognitoUsername
+            };
+            await db.scan(params)
                 .then((data) => {
                     _response = data.Items;
                 })
@@ -131,7 +133,10 @@ export class ApiKey {
         try {
             let response;
             const db: dbService = new dbService(this.DATABASE_ID);
-            await db.getApiKeysForUnVerifiedUsers()
+            const params = {
+                verified: false
+            };
+            await db.scan(params)
                 .then((data) => {
                     const items = data.Items.map((item) => {
                         return {
