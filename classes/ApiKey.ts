@@ -167,7 +167,10 @@ export class ApiKey {
             let response;
             const db: dbService = new dbService(this.DATABASE_ID);
             const id: string = generateID(verifyKeyRequest.cognitoUsername, verifyKeyRequest.apiId);
-            await db.verifyKey(id)
+            const params = {
+                verified: true
+            };
+            await db.update(id, params)
                 .then((data) => {
                     response = {
                         body: data.Attributes
