@@ -186,33 +186,33 @@ export class ApiKey {
 
     }
 
-    authorise = async (apiKey: string, apiId: string, methodArn: string) => {
+    authorise = async (apiKey: string, apiID: string, methodArn: string) => {
         try {
             let policy;
-            const key: IKey = await this.getKey(apiKey, apiId);
+            let key: IKey;
+            const db: dbService = new dbService(this.DATABASE_ID);
+            const params = {
+                apiKey: apiKey,
+                apiID: apiID
+            };
+
+            await db.scan(params).then((data) => {
+                key = data.Items[0];
+            }).catch((error) => {
+                throw new Error(error.message);
+            });
+            console.log(key);
             if (key.verified) {
                 policy = apiKeyService.generatePolicy(key.cognitoUsername, "Allow", methodArn)
             } else {
                 policy = apiKeyService.generatePolicy(key.cognitoUsername, "Deny", methodArn)
             }
+            console.log(policy);
             return policy;
         } catch (error) {
+            console.log(error);
             return apiKeyService.generatePolicy('user', "Deny", methodArn)
         }
     }
 
-    private getKey = async (apiKey: string, apiId: string): Promise<IKey> => {
-        try {
-            let response: IKey;
-            const db: dbService = new dbService(this.DATABASE_ID);
-            await db.checkKey(apiKey, apiId).then((data) => {
-                response = data.Items[0];
-            }).catch((error) => {
-                throw new Error(error.message);
-            });
-            return response;
-        } catch (error) {
-            throw new Error(error.message);
-        }
-    }
 }
