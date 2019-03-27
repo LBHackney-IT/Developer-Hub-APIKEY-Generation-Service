@@ -12,7 +12,7 @@ export class Api {
     private API_INDEX = process.env.ELASTIC_INDEX_API
 
     /**
-     *
+     * This is a function to create and update and api
      *
      * @memberof Api
      */
@@ -45,6 +45,11 @@ export class Api {
         }
     }
 
+    /**
+     * This is a function to read a single API
+     *
+     * @memberof Api
+     */
     readSingle = async (id: string): Promise<IApi> => {
         try {
             let response;
