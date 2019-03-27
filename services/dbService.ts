@@ -152,7 +152,7 @@ export class dbService {
         items.forEach((item, index) => {
             response += `${item} = :${item}`;
             if (index !== items.length - 1) {
-                response += ' and';
+                response += ' and ';
             }
         });
         return response;
