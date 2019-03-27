@@ -15,6 +15,7 @@ provider:
     APIKEY_DYNAMODB_TABLE: apiKeyStore
     API_DYNAMODB_TABLE: apiStore
     API_DYNAMODB_TABLE_STREAM_ARN: arn:aws:dynamodb:${opt:region, self:provider.region}:775052747630:table/${self:provider.environment.API_DYNAMODB_TABLE}/stream/2019-01-31T16:00:00.871
+    AUTHORISER_FUNCTION_ARN: arn:aws:lambda:eu-west-2:775052747630:function:token-generator-dev-authorise-api-key
     COGNITO_USER_POOL_ID: $(ssm:/token-generator-dev/test_cognito_user_pool_id)
     COGNITO_CLIENT_ID: $(ssm:/token-generator-dev/test_cognito_client_id)
     COGNITO_ARN: arn:aws:cognito-idp:eu-west-2:775052747630:userpool/eu-west-2_rQ3dI3Vbp
@@ -182,7 +183,8 @@ functions:
       - http:
           method: get
           path: health
-          authorizer: arn:aws:lambda:eu-west-2:775052747630:function:token-generator-dev-authorise-api-key
+          authorizer: 
+            arn: ${self:provider.environment.AUTHORISER_FUNCTION_ARN}
   # ES CONTROLLER
   index-elastic-search:
     handler: controllers/esController.indexES
