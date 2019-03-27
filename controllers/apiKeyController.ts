@@ -99,7 +99,7 @@ export const verifyKey: APIGatewayProxyHandler = async (event, context) => {
 
 export const authoriseKey = async (event, context, callback) => {
   try {
-    const api_key = event.headers['x-api-key'];
+    const api_key = event.authorizationToken;
     const method_arn = event.methodArn;
     const api_id = apiKeyService.getApiId(method_arn);
 
@@ -111,7 +111,7 @@ export const authoriseKey = async (event, context, callback) => {
     return policy;
     callback(null, policy);
   } catch (error) {
-    callback(error, "Unauthorized"); 
+    callback(error, "fail"); 
   }
 
 }
