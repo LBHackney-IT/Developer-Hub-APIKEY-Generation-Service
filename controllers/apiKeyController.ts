@@ -7,6 +7,7 @@ import { responseService } from '../services/responseService';
 import { ICreateKeyRequest, IReadKeyRequest, IVerifyKeyRequest } from '../interfaces/IRequests';
 import { ApiKey } from '../classes/ApiKey';
 import { getApi } from './apiController';
+import { IKey } from '../interfaces/IKey';
 
 export const createKey: APIGatewayProxyHandler = async (event, context) => {
   try {
@@ -111,7 +112,22 @@ export const authoriseKey = async (event, context, callback) => {
     return policy;
     callback(null, policy);
   } catch (error) {
-    callback(error, "fail"); 
+    callback(error, "unauthorised"); 
   }
+}
 
+export const updateLastAccessField = async(event, context, callback) => {
+  try {
+    console.log(event);
+    const key: IKey = JSON.parse(event.body);
+    if(key == null || key.id) {
+      throw new Error('Request variables are missing');
+    }
+    const apiKey: ApiKey = new ApiKey();
+    const response = await apiKey.updateLastAccessed(key.id);
+    callback(null, response);
+  } catch (error) {
+    console.log(JSON.stringify(error));
+    callback(error);
+  }
 }
