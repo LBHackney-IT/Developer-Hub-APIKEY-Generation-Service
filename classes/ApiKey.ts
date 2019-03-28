@@ -264,13 +264,28 @@ export class ApiKey {
             }).catch((error) => {
                 throw new Error(error.message);
             });
-            console.log(key);
+
+
             if (key.verified) {
+                const lambda = new Lambda({apiVersion: '2015-03-31'});
+                const params = {
+                    FunctionName: 'token-generator-dev-update-api-key-last-accessed',
+                    InvocationType: "Event",
+                    Payload: JSON.stringify(key)
+                };
+
+                lambda.invoke(params, (err, data) => {
+                    if(err) {
+                        console.log(err);
+                    }
+                    console.log(data);
+                });
+
                 policy = apiKeyService.generatePolicy(key.cognitoUsername, "Allow", methodArn)
             } else {
                 policy = apiKeyService.generatePolicy(key.cognitoUsername, "Deny", methodArn)
             }
-            console.log(policy);
+
             return policy;
         } catch (error) {
             console.log(error);
