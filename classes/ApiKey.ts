@@ -47,6 +47,67 @@ export class ApiKey {
     }
 
     /**
+     * This is function to refresh the API token
+     *
+     * @memberof ApiKey
+     */
+    refresh = async (createKeyRequest: ICreateKeyRequest) => {
+        try {
+            let response;
+            const id = generateID(createKeyRequest.cognitoUsername, createKeyRequest.apiId);
+            const db: dbService = new dbService(this.DATABASE_ID);
+
+            await db.update(id, {
+                apiKey: apiKeyService.create(),
+                createdAt: Date.now(),
+                last_accessed: Date.now()
+            })
+                .then((data) => {
+                    response = assignToBody({
+                        message: 'Your key has been refreshed'
+                    });
+                })
+                .catch((error) => {
+                    throw new Error(error.message);
+                });
+            return response;
+        } catch (error) {
+            throw new Error(error.message);
+        }
+    }
+
+    /**
+     * This is a function to update the last_accessed key in dynamoDB
+     * after a user attempts to
+     *
+     * @memberof ApiKey
+     */
+    updateLastAccessed = async (id) => {
+        try {
+            let response;
+            const db: dbService = new dbService(this.DATABASE_ID);
+
+            await db.update(id, {
+                last_accessed: Date.now()
+            })
+                .then((data) => {
+                    response = assignToBody({
+                        message: 'last_accessed key was successfully updated'
+                    });
+                    console.log(data);
+                })
+                .catch((error) => {
+                    console.log(error)
+                    throw new Error(error.message);
+                });
+
+            return response;
+        } catch (error) {
+            throw new Error(error.message);
+        }
+    }
+
+    /**
      *
      *
      * @memberof ApiKey
