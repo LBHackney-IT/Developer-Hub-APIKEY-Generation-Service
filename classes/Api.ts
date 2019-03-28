@@ -46,7 +46,7 @@ export class Api {
     }
 
     /**
-     * This is a function to read a single API
+     * This is a function to read a single API from the elasticSearch cluster
      *
      * @memberof Api
      */
@@ -69,6 +69,12 @@ export class Api {
         }
     }
 
+    /**
+     * This is a function to retreive all API's from the 
+     * elastic search
+     *
+     * @memberof Api
+     */
     readAll = async (): Promise<IApi[]> => {
         try {
             let response;
@@ -92,6 +98,12 @@ export class Api {
         }
     }
 
+    /**
+     * This is a function to delete API from both the DB and
+     * elastic search
+     *
+     * @memberof Api
+     */
     delete = async (id: string) => {
         try {
             let response;
@@ -122,6 +134,12 @@ export class Api {
         }
     }
 
+    /**
+     * This is a function to manually put all apis in the db into 
+     * the elastic search cluster
+     * 
+     * @memberof Api
+     */
     manuallyUpdateElasticSearch = async () => {
         try {
             let response;
@@ -155,6 +173,12 @@ export class Api {
         }
     }
 
+    /**
+     * This function automatically updates elastic search when an
+     * object in DynamoDB is updated
+     *
+     * @memberof Api
+     */
     automaticallyUpdateStoreFromStream = async (events: DynamoDBStreamEvent) => {
         try {
             // Instantiate AWS.DynamoDB.Unmarshall converter
