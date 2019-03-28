@@ -56,7 +56,11 @@ provider:
         - es:ESHttpGet
       Resource:
         - "arn:aws:es:${opt:region, self:provider.region}:*:domain/${self:provider.environment.ELASTIC_SEARCH_DOMAIN_NAME}/*"    
-
+    - Effect: Allow
+      Action:
+        - lambda:InvokeFunction
+      Resource:
+        - "arn:aws:lambda:${opt:region, self:provider.region}:*:function:token-generator-dev-update-api-key-last-accessed"
 functions:
   # APIKEY CONTROLLER
   create-api-key:
@@ -130,7 +134,8 @@ functions:
             arn: ${self:provider.environment.COGNITO_ARN}
   authorise-api-key:
     handler: controllers/apiKeyController.authoriseKey
-          
+  update-api-key-last-accessed:
+    handler: controllers/apiKeyController.updateLastAccessField       
   # API CONTROLLER
   create-api:
     handler: controllers/apiController.createApi
