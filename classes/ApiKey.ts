@@ -116,7 +116,7 @@ export class ApiKey {
     readSingle = async (readKeyRequest: IReadKeyRequest) => {
         try {
             let response;
-            const db: dbService = new dbService(this.DATABASE_ID);
+            const db: dbService = new dbService(this.API_KEY_STORE_DATABASE_ID);
             const id: string = generateID(readKeyRequest.cognitoUsername, readKeyRequest.apiId);
 
             await db.getItem(id)
