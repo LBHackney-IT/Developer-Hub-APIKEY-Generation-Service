@@ -22,6 +22,10 @@ export class dbService {
                 this.tableName = process.env.API_DYNAMODB_TABLE;
                 break;
             }
+            case 'apiGateway': {
+                this.tableName = process.env.API_GATEWAY_DYNAMODB_TABLE;
+                break;
+            }
             default: {
                 this.tableName = process.env.APIKEY_DYNAMODB_TABLE;
                 break;
