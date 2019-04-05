@@ -14,6 +14,7 @@ provider:
   environment:
     APIKEY_DYNAMODB_TABLE: apiKeyStore
     API_DYNAMODB_TABLE: apiStore
+    API_GATEWAY_DYNAMODB_TABLE: apiGatewayStore
     API_DYNAMODB_TABLE_STREAM_ARN: arn:aws:dynamodb:${opt:region, self:provider.region}:775052747630:table/${self:provider.environment.API_DYNAMODB_TABLE}/stream/2019-01-31T16:00:00.871
     AUTHORISER_FUNCTION_ARN: arn:aws:lambda:eu-west-2:775052747630:function:token-generator-dev-authorise-api-key
     COGNITO_USER_POOL_ID: $(ssm:/token-generator-dev/test_cognito_user_pool_id)
@@ -34,6 +35,13 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.APIKEY_DYNAMODB_TABLE}"
+    - Effect: Allow
+      Action:
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.API_GATEWAY_DYNAMODB_TABLE}"
     - Effect: Allow
       Action:
         - dynamodb:Scan
@@ -242,7 +250,19 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 5
           WriteCapacityUnits: 5
-    
+    ApiGatewayStore:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        TableName: ${self:provider.environment.API_GATEWAY_DYNAMODB_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5          
     ApiStore:
       Type: 'AWS::DynamoDB::Table'
       Properties:
