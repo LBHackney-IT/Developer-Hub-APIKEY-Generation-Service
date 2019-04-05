@@ -101,8 +101,31 @@ export class ApiKey {
                     console.log(error)
                     throw new Error(error.message);
                 });
-
             return response;
+        } catch (error) {
+            throw new Error(error.message);
+        }
+    }
+
+    logRequest = async (key: IKey) => {
+        try {
+            const db: dbService = new dbService(this.API_GATEWATE_STORE_DATABASE_ID);
+            const timeAccessed = Date.now();
+            const item = {
+                id: `${key.cognitoUsername}_${key.apiID}_${timeAccessed}`,
+                cognitoUsername: key.cognitoUsername,
+                email: key.email,
+                apiID: key.apiID,
+                timeAccessed: timeAccessed
+            };
+            
+            await db.putItem(item)
+                .then((data) => {
+                    console.log(data);
+                }).catch((error) => {
+                    console.log(error.message);
+                    throw new Error(error.message);
+                });
         } catch (error) {
             throw new Error(error.message);
         }
