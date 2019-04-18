@@ -92,21 +92,23 @@ export class ApiKey {
                 last_accessed: Date.now()
             })
                 .then((data) => {
-                    response = assignToBody({
-                        message: 'last_accessed key was successfully updated'
-                    });
                     console.log(data);
                 })
                 .catch((error) => {
                     console.log(error)
                     throw new Error(error.message);
                 });
-            return response;
+            // return response;
         } catch (error) {
             throw new Error(error.message);
         }
     }
 
+    /**
+     * This is a function to log the request in the apiGateway table
+     *
+     * @memberof ApiKey
+     */
     logRequest = async (key: IKey) => {
         try {
             const db: dbService = new dbService(this.API_GATEWATE_STORE_DATABASE_ID);
@@ -116,9 +118,10 @@ export class ApiKey {
                 cognitoUsername: key.cognitoUsername,
                 email: key.email,
                 apiID: key.apiID,
+                methodType: key.methodType,
                 timeAccessed: timeAccessed
             };
-            
+
             await db.putItem(item)
                 .then((data) => {
                     console.log(data);
@@ -132,7 +135,7 @@ export class ApiKey {
     }
 
     /**
-     *
+     * Read a single api for a user and api
      *
      * @memberof ApiKey
      */
@@ -159,7 +162,7 @@ export class ApiKey {
     }
 
     /**
-     *
+     * Read all keys for a particular user
      *
      * @memberof ApiKey
      */
@@ -225,6 +228,7 @@ export class ApiKey {
             };
             await db.scan(params)
                 .then((data) => {
+                    // Iterate through the array and restructure the array of objects
                     const items = data.Items.map((item) => {
                         return {
                             email: item['email'],
@@ -245,7 +249,7 @@ export class ApiKey {
     }
 
     /**
-     *
+     * This function set the verified key to true in the apiKey
      *
      * @memberof ApiKey
      */
@@ -273,6 +277,13 @@ export class ApiKey {
 
     }
 
+    /**
+     * This function returns a policy depending on the user's permission to access an endpoint by
+     * checking whether the apiKey provided is verified. It also invokes the updateLastAccessField function 
+     * in the apiKeyController to log the event.
+     *
+     * @memberof ApiKey
+     */
     authorise = async (apiKey: string, apiID: string, methodArn: string) => {
         try {
             let policy;
@@ -282,39 +293,39 @@ export class ApiKey {
                 apiKey: apiKey,
                 apiID: apiID
             };
-
+            // Retrieve objects from DB that match apiKey and apiID
             await db.scan(params).then((data) => {
                 key = data.Items[0];
             }).catch((error) => {
                 throw new Error(error.message);
             });
 
-
             if (key.verified) {
                 const lambda = new Lambda({ apiVersion: '2015-03-31' });
+                key.methodType = apiKeyService.getMethod(methodArn);
                 const params = {
                     FunctionName: 'token-generator-dev-update-api-key-last-accessed',
                     InvocationType: "Event",
                     Payload: JSON.stringify(key)
                 };
-
-                await lambda.invoke(params, (err, data) => {
-                    if (err) {
-                        console.log(err);
-                    }
-                    console.log(data);
-                });
-
+                // Invoke updateLastAccessField function and pass key object to perform further actions
+                await lambda.invoke(params).promise()
+                    .then((data) => {
+                        console.log(data);
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    });
+                // Generate allow policy if key is verified
                 policy = apiKeyService.generatePolicy(key.cognitoUsername, "Allow", methodArn)
             } else {
+                // Generate deny policy if key is verified
                 policy = apiKeyService.generatePolicy(key.cognitoUsername, "Deny", methodArn)
             }
-
             return policy;
         } catch (error) {
             console.log(error);
             return apiKeyService.generatePolicy('user', "Deny", methodArn)
         }
     }
-
 }
