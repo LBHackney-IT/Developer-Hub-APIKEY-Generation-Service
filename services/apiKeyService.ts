@@ -140,4 +140,9 @@ export class apiKeyService {
         const methodParts = methodArn.split(':');
         return methodParts[5].split('/')[3];
     }
+
+    static getMethod = (methodArn: string) => {
+        const methodParts = methodArn.split(':');
+        return methodParts[5].split('/')[2];
+    }
 }
