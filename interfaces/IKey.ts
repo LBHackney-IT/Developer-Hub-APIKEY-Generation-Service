@@ -5,5 +5,6 @@ export interface IKey {
     createdAt?: number;
     email?: string;
     id?: string;
-    verified?: true
+    verified?: boolean;
+    methodType?: string
 }
