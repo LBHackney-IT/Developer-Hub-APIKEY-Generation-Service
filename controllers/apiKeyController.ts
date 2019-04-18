@@ -118,14 +118,17 @@ export const authoriseKey = async (event, context, callback) => {
 
 export const updateLastAccessField = async(event, context, callback) => {
   try {
-    console.log(event);
-    const key: IKey = JSON.parse(event.body);
-    if(key == null || key.id) {
+    const key: IKey = event;
+
+    if(key == null || !key.id) {
       throw new Error('Request variables are missing');
     }
     const apiKey: ApiKey = new ApiKey();
-    const response = await apiKey.updateLastAccessed(key.id);
-    callback(null, response);
+    await apiKey.logRequest(key).then(() => {
+      return Promise.all([apiKey.updateLastAccessed(key.id)])
+    });
+    
+    callback(null, 'successsfully updated last accessed field');
   } catch (error) {
     console.log(JSON.stringify(error));
     callback(error);
