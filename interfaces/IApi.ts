@@ -6,13 +6,19 @@ export interface IApi {
     summary: string;
     compliant: ICompiancy;
     internal: boolean;
+    production?: {
+        url?: string,
+        swagger_url?: string,
+        deployed: boolean,
+        healthStatus: boolean
+    };
     staging?: {
         url?: string,
         swagger_url?: string,
         deployed: boolean,
         healthStatus: boolean,
     };
-    production?: {
+    development?: {
         url?: string,
         swagger_url?: string,
         deployed: boolean,
