@@ -141,8 +141,28 @@ export class apiKeyService {
         return methodParts[5].split('/')[3];
     }
 
+    /**
+     * This is a function to retrieve the method type from the methodArn
+     *
+     * @static
+     * @memberof apiKeyService
+     */
     static getMethod = (methodArn: string) => {
         const methodParts = methodArn.split(':');
         return methodParts[5].split('/')[2];
     }
+
+    /**
+     * This function needs to be updated to retrive the stage from
+     * the method arn
+     *
+     * @static
+     * @memberof apiKeyService
+     */
+    static getStage = (methodArn: string) => {
+        const methodParts = methodArn.split(':');
+        return methodParts[5].split('/')[2];
+    }
+
+    
 }
