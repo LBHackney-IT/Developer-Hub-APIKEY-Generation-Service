@@ -113,7 +113,8 @@ export class ApiKey {
     logRequest = async (key: IKey) => {
         try {
             const db: dbService = new dbService(this.API_GATEWATE_STORE_DATABASE_ID);
-            const timeAccessed = Date.now();
+            // Test whether it converts to string
+            const timeAccessed = Date.now().toString();
             const item = {
                 id: `${key.cognitoUsername}_${key.apiID}_${timeAccessed}`,
                 cognitoUsername: key.cognitoUsername,
@@ -136,7 +137,7 @@ export class ApiKey {
     }
 
     /**
-     * Read a single api for a user and api
+     * Read a single api for a user, api and stage
      *
      * @memberof ApiKey
      */
