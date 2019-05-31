@@ -13,9 +13,12 @@ provider:
   region: eu-west-2
   stage: ${opt:stage, 'dev'}
   environment:
-    APIKEY_DYNAMODB_TABLE: apiKeyStore-${self:provider.stage}
-    API_DYNAMODB_TABLE: apiStore-${self:provider.stage}
-    API_GATEWAY_DYNAMODB_TABLE: apiGatewayStore-${self:provider.stage}
+    APIKEY_DYNAMODB_TABLE: apiKeyStore
+    # APIKEY_DYNAMODB_TABLE: apiKeyStore-${self:provider.stage}
+    API_DYNAMODB_TABLE: apiStore
+    # API_DYNAMODB_TABLE: apiStore-${self:provider.stage}
+    API_GATEWAY_DYNAMODB_TABLE: apiGatewayStore
+    # API_GATEWAY_DYNAMODB_TABLE: apiGatewayStore-${self:provider.stage}
     API_DYNAMODB_TABLE_STREAM_ARN: arn:aws:dynamodb:${opt:region, self:provider.region}:775052747630:table/${self:provider.environment.API_DYNAMODB_TABLE}/stream/2019-01-31T16:00:00.871
     AUTHORISER_FUNCTION_ARN: arn:aws:lambda:eu-west-2:775052747630:function:token-generator-dev-authorise-api-key
     COGNITO_USER_POOL_ID: $(ssm:/token-generator-dev/test_cognito_user_pool_id)
