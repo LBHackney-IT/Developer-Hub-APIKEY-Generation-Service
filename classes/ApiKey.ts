@@ -199,7 +199,8 @@ export class ApiKey {
                     return {
                         api: api,
                         apiKey: item['apiKey'],
-                        verified: item['verified']
+                        verified: item['verified'],
+                        stage: item['stage']
                     }
                 } else {
                     return null;
@@ -236,7 +237,8 @@ export class ApiKey {
                             email: item['email'],
                             apiID: item['apiID'],
                             verified: item['verified'],
-                            cognitoUsername: item['cognitoUsername']
+                            cognitoUsername: item['cognitoUsername'],
+                            stage: item['stage']
                         };
                     });
                     response = assignToBody(items);
