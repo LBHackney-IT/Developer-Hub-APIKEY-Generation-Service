@@ -2,6 +2,7 @@ import { APIGatewayProxyHandler } from 'aws-lambda';
 import { IApi } from '../interfaces/IApi';
 import { responseService } from '../services/responseService';
 import { Api } from '../classes/Api';
+import { dbService } from '../services/dbService';
 
 /**
 *
@@ -47,7 +48,7 @@ export const getApi: APIGatewayProxyHandler = async (event, context) => {
 export const getApiList: APIGatewayProxyHandler = async (event, context) => {
     try {
         const api: Api = new Api();
-        const response = await api.readAll()
+        const response = await api.readAll();
         return responseService.success(response);
     } catch (error) {
         return responseService.error(error.message, error.statusCode);
@@ -68,6 +69,20 @@ export const deleteApi: APIGatewayProxyHandler = async (event, context) => {
     } catch (error) {
         return responseService.error(error.message, error.statusCode);
 
+    }
+}
+
+export const migrateApi: APIGatewayProxyHandler = async (event, context) => {
+    try {
+        const db: dbService = new dbService('apiStore');
+        let response: IApi[];
+        db.getAllItems().then((data) => {
+            response = data;
+        });
+
+        return responseService.success(response);
+    } catch (error) {
+        return responseService.error(error.message, error.statusCode);        
     }
 }
 
