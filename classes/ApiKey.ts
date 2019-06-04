@@ -1,5 +1,5 @@
 import { dbService } from '../services/dbService';
-import { ICreateKeyRequest, IReadKeyRequest, IVerifyKeyRequest } from '../interfaces/IRequests';
+import { ICreateKeyRequest, IReadKeyRequest, IVerifyKeyRequest, IAuthoriseKeyRequest } from '../interfaces/IRequests';
 import { generateID, assignToBody } from '../helper';
 import { apiKeyService } from '../services/apiKeyService';
 import { AWSError, Lambda } from 'aws-sdk';
@@ -288,14 +288,15 @@ export class ApiKey {
      *
      * @memberof ApiKey
      */
-    authorise = async (apiKey: string, apiID: string, methodArn: string) => {
+    authorise = async (authoriseKeyRequest: IAuthoriseKeyRequest) => {
         try {
             let policy;
             let key: IKey;
             const db: dbService = new dbService(this.API_KEY_STORE_DATABASE_ID);
             const params = {
-                apiKey: apiKey,
-                apiID: apiID
+                apiKey: authoriseKeyRequest.apiKey,
+                apiID: authoriseKeyRequest.apiId,
+                stage: authoriseKeyRequest.stage
             };
             // Retrieve objects from DB that match apiKey and apiID
             await db.scan(params).then((data) => {
@@ -306,7 +307,7 @@ export class ApiKey {
 
             if (key.verified) {
                 const lambda = new Lambda({ apiVersion: '2015-03-31' });
-                key.methodType = apiKeyService.getMethod(methodArn);
+                key.methodType = apiKeyService.getMethod(authoriseKeyRequest.methodArn);
                 const params = {
                     FunctionName: 'token-generator-dev-update-api-key-last-accessed',
                     InvocationType: "Event",
@@ -321,15 +322,15 @@ export class ApiKey {
                         console.log(error);
                     });
                 // Generate allow policy if key is verified
-                policy = apiKeyService.generatePolicy(key.cognitoUsername, "Allow", methodArn)
+                policy = apiKeyService.generatePolicy(key.cognitoUsername, "Allow", authoriseKeyRequest.methodArn)
             } else {
                 // Generate deny policy if key is verified
-                policy = apiKeyService.generatePolicy(key.cognitoUsername, "Deny", methodArn)
+                policy = apiKeyService.generatePolicy(key.cognitoUsername, "Deny", authoriseKeyRequest.methodArn)
             }
             return policy;
         } catch (error) {
             console.log(error);
-            return apiKeyService.generatePolicy('user', "Deny", methodArn)
+            return apiKeyService.generatePolicy('user', "Deny", authoriseKeyRequest.methodArn)
         }
     }
 }

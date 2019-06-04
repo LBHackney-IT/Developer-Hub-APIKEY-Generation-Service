@@ -161,7 +161,7 @@ export class apiKeyService {
      */
     static getStage = (methodArn: string) => {
         const methodParts = methodArn.split(':');
-        return methodParts[5].split('/')[2];
+        return methodParts[5].split('/')[1];
     }
 
     

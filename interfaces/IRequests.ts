@@ -16,3 +16,10 @@ export interface IVerifyKeyRequest {
     apiId: string;
     stage: string;
 }
+
+export interface IAuthoriseKeyRequest {
+    apiKey: string;
+    methodArn: string;
+    apiId: string;
+    stage: string;
+}
