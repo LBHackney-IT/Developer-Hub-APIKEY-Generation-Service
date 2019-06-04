@@ -108,6 +108,8 @@ export const authoriseKey = async (event, context, callback) => {
     const method_arn = event.methodArn;
     const api_id = apiKeyService.getApiId(method_arn);
     const stage = apiKeyService.getStage(method_arn);
+    console.log('context', context);
+    console.log('event', event)
 
     if(api_id == null || api_key == null || stage == null) {
       throw new Error("Request variables are missing");
