@@ -13,12 +13,9 @@ provider:
   region: eu-west-2
   stage: ${opt:stage, 'dev'}
   environment:
-    APIKEY_DYNAMODB_TABLE: apiKeyStore
-    # APIKEY_DYNAMODB_TABLE: apiKeyStore-${self:provider.stage}
-    API_DYNAMODB_TABLE: apiStore
-    # API_DYNAMODB_TABLE: apiStore-${self:provider.stage}
-    API_GATEWAY_DYNAMODB_TABLE: apiGatewayStore
-    # API_GATEWAY_DYNAMODB_TABLE: apiGatewayStore-${self:provider.stage}
+    APIKEY_DYNAMODB_TABLE: apiKeyStore-${self:provider.stage}
+    API_DYNAMODB_TABLE: apiStore-${self:provider.stage}
+    API_GATEWAY_DYNAMODB_TABLE: apiGatewayStore-${self:provider.stage}
     API_DYNAMODB_TABLE_STREAM_ARN: arn:aws:dynamodb:${opt:region, self:provider.region}:775052747630:table/${self:provider.environment.API_DYNAMODB_TABLE}/stream/2019-01-31T16:00:00.871
     AUTHORISER_FUNCTION_ARN: arn:aws:lambda:eu-west-2:775052747630:function:token-generator-dev-authorise-api-key
     COGNITO_USER_POOL_ID: $(ssm:/token-generator-dev/test_cognito_user_pool_id)
@@ -27,7 +24,7 @@ provider:
     ENCRYPT_SECRET: $(ssm:/token-generator-dev/encrypt_secret)
     ENCRYPT_IV: $(ssm:/token-generator-dev/encrypt_iv)
     ELASTIC_SEARCH_DOMAIN_NAME: api-search
-    ELASTIC_INDEX_API: api
+    ELASTIC_INDEX_API: api-${self:provider.stage}
     ELASTIC_INDEX_SWAGGER: swagger
     ELASTIC_SEARCH_ENDPOINT: https://search-api-search-i7mzbfy4dowrf6r3offrnrjhze.eu-west-2.es.amazonaws.com
     ELASTIC_SEARCH_VERSION: "6.3"
@@ -194,6 +191,16 @@ functions:
                 id: true
           authorizer:
             arn: ${self:provider.environment.COGNITO_ARN}
+  # migrate-api:
+  #   handler: controllers/apiController.migrateApi
+  #   events:
+  #     - http:
+  #         method: get
+  #         path: api/migrate
+  #         cors: true
+  #         authorizer:
+  #           arn: ${self:provider.environment.COGNITO_ARN}
+  
   # HEALTH CONTROLLER
   health-check:
     handler: controllers/healthController.healthCheck
@@ -281,29 +288,29 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 5
           WriteCapacityUnits: 5
-    # ApiSearch:
-    #   Type: "AWS::Elasticsearch::Domain"
-    #   Properties:
-    #     ElasticsearchVersion: ${self:provider.environment.ELASTIC_SEARCH_VERSION}
-    #     DomainName: ${self:provider.environment.ELASTIC_SEARCH_DOMAIN_NAME}
-    #     ElasticsearchClusterConfig:
-    #       DedicatedMasterEnabled: false
-    #       InstanceCount: "1"
-    #       ZoneAwarenessEnabled: false
-    #       InstanceType: "t2.small.elasticsearch"
-    #     EBSOptions:
-    #       EBSEnabled: true
-    #       Iops: 0
-    #       VolumeSize: 10
-    #       VolumeType: "gp2"
-    #     AccessPolicies:
-    #       Version: "2012-10-17"
-    #       Statement:
-    #         -
-    #           Effect: "Allow"
-    #           Principal:
-    #             AWS: "*"
-    #           Action: "es:*"
-    #           Resource: "*"
-    #     AdvancedOptions:
-    #       rest.action.multi.allow_explicit_index: "true"
+    ApiSearch:
+      Type: "AWS::Elasticsearch::Domain"
+      Properties:
+        ElasticsearchVersion: ${self:provider.environment.ELASTIC_SEARCH_VERSION}
+        DomainName: ${self:provider.environment.ELASTIC_SEARCH_DOMAIN_NAME}
+        ElasticsearchClusterConfig:
+          DedicatedMasterEnabled: false
+          InstanceCount: "1"
+          ZoneAwarenessEnabled: false
+          InstanceType: "t2.small.elasticsearch"
+        EBSOptions:
+          EBSEnabled: true
+          Iops: 0
+          VolumeSize: 10
+          VolumeType: "gp2"
+        AccessPolicies:
+          Version: "2012-10-17"
+          Statement:
+            -
+              Effect: "Allow"
+              Principal:
+                AWS: "*"
+              Action: "es:*"
+              Resource: "*"
+        AdvancedOptions:
+          rest.action.multi.allow_explicit_index: "true"
