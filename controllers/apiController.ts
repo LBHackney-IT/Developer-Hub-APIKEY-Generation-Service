@@ -74,11 +74,24 @@ export const deleteApi: APIGatewayProxyHandler = async (event, context) => {
 
 export const migrateApi: APIGatewayProxyHandler = async (event, context) => {
     try {
-        const db: dbService = new dbService('apiStore');
+        const db: dbService = new dbService('api');
+        const db2: dbService = new dbService('api-prod');
+
         let response: IApi[];
-        db.getAllItems().then((data) => {
-            response = data;
+        await db2.getAllItems().then((data) => {
+            response = data.Items;
+            // console.log(1, response);
+
         });
+
+        await Promise.all(response.map(async (api: IApi) => {
+            console.log(api.id);
+            await db.putItem(api).then((data) => {
+                console.log('success', data);
+            });
+        }));
+
+
 
         return responseService.success(response);
     } catch (error) {
