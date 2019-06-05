@@ -104,11 +104,12 @@ export const verifyKey: APIGatewayProxyHandler = async (event, context) => {
 
 export const authoriseKey = async (event, context, callback) => {
   try {
+    console.log(event);
     const authoriseKeyRequest: IAuthoriseKeyRequest = {
       apiKey: event.authorizationToken,
       methodArn: event.methodArn,
-      apiId: apiKeyService.getApiId(event.method_arn),
-      stage: apiKeyService.getStage(event.method_arn)
+      apiId: apiKeyService.getApiId(event.methodArn),
+      stage: apiKeyService.getStage(event.methodArn)
     };
     const api_key = event.authorizationToken;
     const method_arn = event.methodArn;
