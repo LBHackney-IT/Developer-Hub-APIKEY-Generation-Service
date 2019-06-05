@@ -11,16 +11,20 @@ provider:
   name: aws
   runtime: nodejs8.10
   region: eu-west-2
+  stage: ${opt:stage, 'dev'}
   environment:
-    APIKEY_DYNAMODB_TABLE: apiKeyStore
-    API_DYNAMODB_TABLE: apiStore
+    APIKEY_DYNAMODB_TABLE: apiKeyStore-${self:provider.stage}
+    API_DYNAMODB_TABLE: apiStore-${self:provider.stage}
+    API_GATEWAY_DYNAMODB_TABLE: apiGatewayStore-${self:provider.stage}
     API_DYNAMODB_TABLE_STREAM_ARN: arn:aws:dynamodb:${opt:region, self:provider.region}:775052747630:table/${self:provider.environment.API_DYNAMODB_TABLE}/stream/2019-01-31T16:00:00.871
+    AUTHORISER_FUNCTION_ARN: arn:aws:lambda:eu-west-2:775052747630:function:token-generator-dev-authorise-api-key
     COGNITO_USER_POOL_ID: $(ssm:/token-generator-dev/test_cognito_user_pool_id)
     COGNITO_CLIENT_ID: $(ssm:/token-generator-dev/test_cognito_client_id)
     COGNITO_ARN: arn:aws:cognito-idp:eu-west-2:775052747630:userpool/eu-west-2_rQ3dI3Vbp
     ENCRYPT_SECRET: $(ssm:/token-generator-dev/encrypt_secret)
+    ENCRYPT_IV: $(ssm:/token-generator-dev/encrypt_iv)
     ELASTIC_SEARCH_DOMAIN_NAME: api-search
-    ELASTIC_INDEX_API: api
+    ELASTIC_INDEX_API: api-${self:provider.stage}
     ELASTIC_INDEX_SWAGGER: swagger
     ELASTIC_SEARCH_ENDPOINT: https://search-api-search-i7mzbfy4dowrf6r3offrnrjhze.eu-west-2.es.amazonaws.com
     ELASTIC_SEARCH_VERSION: "6.3"
@@ -38,6 +42,14 @@ provider:
         - dynamodb:GetItem
         - dynamodb:PutItem
         - dynamodb:UpdateItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.API_GATEWAY_DYNAMODB_TABLE}"
+    - Effect: Allow
+      Action:
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.API_DYNAMODB_TABLE}"
     - Effect: Allow
       Action:
@@ -54,7 +66,11 @@ provider:
         - es:ESHttpGet
       Resource:
         - "arn:aws:es:${opt:region, self:provider.region}:*:domain/${self:provider.environment.ELASTIC_SEARCH_DOMAIN_NAME}/*"    
-
+    - Effect: Allow
+      Action:
+        - lambda:InvokeFunction
+      Resource:
+        - "arn:aws:lambda:${opt:region, self:provider.region}:*:function:token-generator-dev-update-api-key-last-accessed"
 functions:
   # APIKEY CONTROLLER
   create-api-key:
@@ -128,16 +144,8 @@ functions:
             arn: ${self:provider.environment.COGNITO_ARN}
   authorise-api-key:
     handler: controllers/apiKeyController.authoriseKey
-    events:
-      - http:
-          method: post
-          cors:
-            - enabled: true
-              origin: "*"
-              headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
-              methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
-          path: api-key/authorise
-          
+  update-api-key-last-accessed:
+    handler: controllers/apiKeyController.updateLastAccessField       
   # API CONTROLLER
   create-api:
     handler: controllers/apiController.createApi
@@ -170,6 +178,29 @@ functions:
           method: get
           path: api
           cors: true
+  delete-api: 
+    handler: controllers/apiController.deleteApi
+    events:
+      - http:
+          method: delete
+          path: api/{id}
+          cors: true
+          request:
+            parameters:
+              paths:
+                id: true
+          authorizer:
+            arn: ${self:provider.environment.COGNITO_ARN}
+  # migrate-api:
+  #   handler: controllers/apiController.migrateApi
+  #   events:
+  #     - http:
+  #         method: get
+  #         path: api/migrate
+  #         cors: true
+  #         authorizer:
+  #           arn: ${self:provider.environment.COGNITO_ARN}
+  
   # HEALTH CONTROLLER
   health-check:
     handler: controllers/healthController.healthCheck
@@ -177,6 +208,8 @@ functions:
       - http:
           method: get
           path: health
+          authorizer: 
+            arn: ${self:provider.environment.AUTHORISER_FUNCTION_ARN}
   # ES CONTROLLER
   index-elastic-search:
     handler: controllers/esController.indexES
@@ -191,24 +224,10 @@ functions:
         type: dynamodb
         arn: ${self:provider.environment.API_DYNAMODB_TABLE_STREAM_ARN}
   # SWAGGER CONTROLLER
-  # get-swagger-info-from-json:
-  #   handler: controllers/swaggerController.periodicallyIndexESWithSwaggerJson
-  #   events:
-  #     - schedule: 
-  #         rate: cron(* * * * *)
-  #         enabled: true
-
   get-swagger-info-from-json:
     handler: controllers/swaggerController.periodicallyIndexESWithSwaggerJson
     events:
-      - http: 
-          method: get
-          path: swagger-from-json
-          cors:
-            - enabled: true
-              origin: "*"
-              headers: "Content-Type,Authorization,Access-Control-Allow-Origin"
-              methods: "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT" 
+      - schedule: rate(1 day) 
   read-swagger-list:
     handler: controllers/swaggerController.getSwaggerList
     events: 
@@ -227,8 +246,7 @@ functions:
             parameters:
               paths:
                 apiId: true
-
-       
+    
 resources:
   Resources:
     TokenStore:
@@ -244,7 +262,19 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 5
           WriteCapacityUnits: 5
-    
+    ApiGatewayStore:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        TableName: ${self:provider.environment.API_GATEWAY_DYNAMODB_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5          
     ApiStore:
       Type: 'AWS::DynamoDB::Table'
       Properties:

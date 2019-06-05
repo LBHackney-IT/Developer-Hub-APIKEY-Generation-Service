@@ -1,4 +1,5 @@
 import { ICompiancy } from './ICompliancy';
+import { IStage } from './IStage';
 
 export interface IApi {
     id: string;
@@ -6,18 +7,9 @@ export interface IApi {
     summary: string;
     compliant: ICompiancy;
     internal: boolean;
-    staging?: {
-        url?: string,
-        swagger_url?: string,
-        deployed: boolean,
-        healthStatus: boolean,
-    };
-    production?: {
-        url?: string,
-        swagger_url?: string,
-        deployed: boolean,
-        healthStatus: boolean
-    };
+    staging?: IStage;
+    development?: IStage;
+    production?: IStage;
     description: string;
     approved: boolean;
     stage?: string;

@@ -4,11 +4,12 @@
   "description": "Serverless webpack example using Typescript",
   "main": "handler.js",
   "scripts": {
-    "test": "mocha -r ts-node/register /**/*.spec.ts"
+    "test": "mocha -r ts-node/register tests/**/*.spec.ts"
   },
   "dependencies": {
     "@types/aws-sdk": "^2.7.0",
     "@types/axios": "^0.14.0",
+    "@types/crypto-js": "^3.1.43",
     "@types/elasticsearch": "^5.0.30",
     "@types/http-aws-es": "^6.0.0",
     "aws-sdk": "^2.384.0",
@@ -17,7 +18,9 @@
     "elasticsearch": "^15.3.1",
     "http-aws-es": "^6.0.0",
     "node.extend": "^2.0.2",
-    "serverless-dynamodb-local": "^0.2.36"
+    "serverless-dynamodb-local": "^0.2.36",
+    "winston": "^3.2.1",
+    "winston-papertrail": "^1.0.5"
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.1",
@@ -28,6 +31,7 @@
     "chai": "^4.2.0",
     "dynamodb-stream-elasticsearch": "^2.2.1",
     "mocha": "^5.2.0",
+    "serverless-aws-documentation": "^1.1.0",
     "serverless-offline": "^3.32.1",
     "serverless-offline-scheduler": "^0.3.7",
     "serverless-webpack": "^5.1.1",

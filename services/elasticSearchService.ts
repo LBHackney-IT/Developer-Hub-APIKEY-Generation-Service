@@ -3,12 +3,12 @@ import * as httpAwsEs from 'http-aws-es';
 
 export class elasticSearchService {
 
-    private options = {
+    options = {
         hosts: [process.env.ELASTIC_SEARCH_ENDPOINT],
         connectionClass: httpAwsEs,
         apiVersion: process.env.ELASTIC_SEARCH_VERSION
     };
-    private esClient: elasticSearch.Client;
+    esClient: elasticSearch.Client;
 
     constructor() {
         this.esClient = new elasticSearch.Client(this.options);
@@ -61,7 +61,6 @@ export class elasticSearchService {
             type: 'object',
             id: id
         };
-
         return this.esClient.get(document);
     }
 
@@ -80,10 +79,8 @@ export class elasticSearchService {
         }
         const document = {
             index: index,
-            // q: 'approved:true'
             body: queryAllDocs
         };
-
         return this.esClient.search(document);
     }
 
@@ -120,7 +117,6 @@ export class elasticSearchService {
             index: index,
             body: queryAllDocs,
             filterPath: ['hits.hits._source'],
-
         };
 
         return this.esClient.search(document);
@@ -135,14 +131,14 @@ export class elasticSearchService {
      * @returns {Promise<any>}
      * @memberof elasticSearchService
      */
-    async delete(body: object, index: string): Promise<any> {
-        if (!body['id']) {
+    async delete(id: string, index: string): Promise<any> {
+        if (!id) {
             throw new Error("The ID is missing from this object");
         }
         const document = {
             index: index,
             type: 'object',
-            id: body['id']
+            id: id
         };
 
         return this.esClient.delete(document);
@@ -161,6 +157,4 @@ export class elasticSearchService {
         };
         return this.esClient.indices.refresh(params);
     }
-
-
 }
