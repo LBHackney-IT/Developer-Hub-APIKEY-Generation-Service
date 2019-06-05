@@ -4,7 +4,7 @@ import { dbService } from '../services/dbService';
 import { apiKeyService } from '../services/apiKeyService';
 import { generateID, assignToBody, allKeysHaveValues } from '../helper';
 import { responseService } from '../services/responseService';
-import { ICreateKeyRequest, IReadKeyRequest, IVerifyKeyRequest } from '../interfaces/IRequests';
+import { ICreateKeyRequest, IReadKeyRequest, IVerifyKeyRequest, IAuthoriseKeyRequest } from '../interfaces/IRequests';
 import { ApiKey } from '../classes/ApiKey';
 import { getApi } from './apiController';
 import { IKey } from '../interfaces/IKey';
@@ -12,10 +12,12 @@ import { IKey } from '../interfaces/IKey';
 export const createKey: APIGatewayProxyHandler = async (event, context) => {
   try {
     const body = JSON.parse(event.body);
+
     const createKeyRequest: ICreateKeyRequest = {
       cognitoUsername: body.cognito_username,
       apiId: body.api_id,
-      email: body.email
+      email: body.email,
+      stage: body.stage
     }
     if(!allKeysHaveValues(createKeyRequest)) {
       throw new Error('Request variable is missing');
@@ -33,7 +35,8 @@ export const readKey: APIGatewayProxyHandler = async (event, context) => {
     const body = event.queryStringParameters;
     const readKeyRequest: IReadKeyRequest = {
       cognitoUsername: body.cognito_username,
-      apiId: body.api_id
+      apiId: body.api_id,
+      stage: body.stage
     }
     if(!allKeysHaveValues(readKeyRequest)) {
       throw new Error('Request variable is missing');
@@ -82,7 +85,8 @@ export const verifyKey: APIGatewayProxyHandler = async (event, context) => {
 
     const verifyKeyRequest: IVerifyKeyRequest = {
       cognitoUsername: body.cognito_username,
-      apiId: body.api_id
+      apiId: body.api_id,
+      stage: body.stage
     }
 
     if(!allKeysHaveValues(verifyKeyRequest)) {
@@ -100,17 +104,24 @@ export const verifyKey: APIGatewayProxyHandler = async (event, context) => {
 
 export const authoriseKey = async (event, context, callback) => {
   try {
+    console.log(event);
+    const authoriseKeyRequest: IAuthoriseKeyRequest = {
+      apiKey: event.authorizationToken,
+      methodArn: event.methodArn,
+      apiId: apiKeyService.getApiId(event.methodArn),
+      stage: apiKeyService.getStage(event.methodArn)
+    };
     const api_key = event.authorizationToken;
     const method_arn = event.methodArn;
     const api_id = apiKeyService.getApiId(method_arn);
+    const stage = apiKeyService.getStage(method_arn);
 
-    if(api_id == null || api_key == null) {
+    if(!allKeysHaveValues(authoriseKeyRequest)) {
       throw new Error("Request variables are missing");
     }
     const apiKey: ApiKey = new ApiKey();
-    const policy = await apiKey.authorise(api_key, api_id, method_arn);
+    const policy = await apiKey.authorise(authoriseKeyRequest);
     return policy;
-    callback(null, policy);
   } catch (error) {
     callback(error, "unauthorised"); 
   }

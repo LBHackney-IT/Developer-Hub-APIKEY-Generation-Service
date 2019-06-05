@@ -8,7 +8,8 @@ describe('Helper File', () => {
         it('should return a concatenated string', () => {
             const cognitoUsername = 'xxx';
             const apiID = 'apiID';
-            const result = generateID(cognitoUsername, apiID);
+            const stage = 'development';
+            const result = generateID(cognitoUsername, apiID, stage);
             expect(result).to.equal('xxx_apiID');
         });
     });
