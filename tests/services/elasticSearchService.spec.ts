@@ -7,23 +7,19 @@ import { elasticSearchService } from '../../services/elasticSearchService';
 const expect = chai.expect;
 
 describe('elasticSearchService', () => {
+    process.env.ELASTIC_SEARCH_ENDPOINT = 'http://example.com';
+    process.env.ELASTIC_SEARCH_VERSION = "6.3";
+    let esService: elasticSearchService;
+    esService = new elasticSearchService();
+    const esClient = sinon.stub(esService.esClient);
+
+    beforeEach(() => {
+    });
     
     describe('healthCheck', () => {
-        let pingSpy : sinon.SinonSpy;
-        beforeEach(() => {
-            const esService = new elasticSearchService();
-            const options = {
-                hosts: ['http://example.com'],
-                connectionClass: httpAwsEs,
-                apiVersion: "6.3"
-            };
-            const esClient = new elasticSearch.Client(options);
-            esService.esClient = esClient;
-            pingSpy = sinon.spy(esService.esClient, 'ping');
-            esService.healthCheck();
-        });
         it('should call esClient ping', () => {
-            expect(pingSpy.calledOnce).to.equal(true);
+            esService.healthCheck();
+            expect(esClient.ping.calledOnce).to.equal(true);
         });   
     });
 
@@ -31,25 +27,48 @@ describe('elasticSearchService', () => {
         const body = {
             id: 'string_identifier'
         };
-        let indexSpy : sinon.SinonSpy;
-        let esService: elasticSearchService;
-        beforeEach(() => {
-            esService = new elasticSearchService();
-            const options = {
-                hosts: ['https://search-api-search-i7mzbfy4dowrf6r3offrnrjhze.eu-west-2.es.amazonaws.com'],
-                connectionClass: httpAwsEs,
-                apiVersion: "6.3"
-            };
-            const esClient = new elasticSearch.Client(options);
-            esService.esClient = esClient;
-            indexSpy = sinon.spy(esService.esClient, 'index');
-
-        });
-        it('should call esClient ping', () => {
+        it('should call esClient index', () => {
             esService.index(body, 'api');
-            expect(indexSpy.calledOnce).to.equal(true);
+            expect(esClient.index.calledOnce).to.equal(true);
         });   
     });
 
+    describe('getItem', () => {
+        it('should call esClient get', () => {
+            const id = 'string_identifier';
+            esService.getItem(id, 'api');
+            expect(esClient.get.calledOnce).to.equal(true);
+        });   
+    });
+
+    describe('getItems', () => {
+        it('should call esClient search', () => {
+            esService.getItems('api');
+            expect(esClient.search.calledOnce).to.equal(true);
+        });   
+    });
+
+    describe('getSwaggerUrls', () => {
+        it('should call esClient search', () => {
+            esService.getSwaggerUrls('api');
+            expect(esClient.search.called).to.equal(true);
+        });   
+    });
+
+    describe('getSwaggerObjects', () => {
+        it('should call esClient search', () => {
+            const id = 'string_identifier';
+            esService.getSwaggerObjects('api');
+            expect(esClient.search.called).to.equal(true);
+        });   
+    });
+
+    describe('delete', () => {
+        it('should call esClient delete', () => {
+            const id = 'string_identifier';
+            esService.delete(id, 'api');
+            expect(esClient.delete.calledOnce).to.equal(true);
+        });   
+    });
     
 });
