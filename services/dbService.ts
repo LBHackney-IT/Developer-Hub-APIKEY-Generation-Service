@@ -181,10 +181,6 @@ export class dbService {
         return response;
     }
 
-    // private generateExpressionAttributeValues = () => {
-
-    // }
-
     private generateExpressionAttributeValues = (items: object): object => {
         let response: {[key: string]: any} = {}; 
         Object.keys(items).map((item) => {
