@@ -1,5 +1,6 @@
 import * as cryptoJS from 'crypto-js';
 import { IStatement } from '../interfaces/IStatement';
+import { IPolicyDocument } from '../interfaces/IPolicyDocument';
 
 export class apiKeyService {
 
@@ -56,12 +57,8 @@ export class apiKeyService {
      * @memberof apiKeyService
      */
     static decrypt = (cipherText: string): string => {
-        // const secret: string = process.env.ENCRYPT_SECRET;
-        // const iv: string = process.env.ENCRYPT_IV;
-        let iv = cryptoJS.lib.WordArray.create('MwSyY78X4dbPit1vAKdtZA').words.toString();
-        iv = cryptoJS.enc.Base64.parse(iv);
-        let secret: string = cryptoJS.lib.WordArray.create('dKjuVDcKxAARFlzUDvVdyr').words.toString();
-        secret = cryptoJS.enc.Base64.parse(secret);
+        const secret: string = process.env.ENCRYPT_SECRET;
+        const iv: string = process.env.ENCRYPT_IV;
         const padding = cryptoJS.pad.Pkcs7;
         const mode = cryptoJS.mode.CBC;
         const options = {
@@ -94,7 +91,7 @@ export class apiKeyService {
      * @static
      * @memberof apiKeyService
      */
-    private static createStatement = (effect: string, resource: string): IStatement => {
+    static createStatement = (effect: string, resource: string): IStatement => {
         return {
             Action: 'execute-api:Invoke',
             Effect: effect,
@@ -109,7 +106,7 @@ export class apiKeyService {
      * @static
      * @memberof apiKeyService
      */
-    private static createPolicyDocument = (statement: IStatement) => {
+    static createPolicyDocument = (statement: IStatement) => {
         return {
             Version: '2012-10-17',
             Statement: [statement]
@@ -123,7 +120,7 @@ export class apiKeyService {
      * @static
      * @memberof apiKeyService
      */
-    private static createAuthResponse = (principalId: string, policyDocument) => {
+    static createAuthResponse = (principalId: string, policyDocument: IPolicyDocument) => {
         return {
             principalId: principalId,
             policyDocument: policyDocument

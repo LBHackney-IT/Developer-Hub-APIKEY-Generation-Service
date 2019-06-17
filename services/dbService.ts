@@ -2,7 +2,7 @@ import { DynamoDB, AWSError } from 'aws-sdk';
 import { resolve } from 'dns';
 
 export class dbService {
-    private dynamoDBDocuClient: DynamoDB.DocumentClient;
+    dynamoDBDocuClient: DynamoDB.DocumentClient;
     private tableName: string;
 
     /**
@@ -51,7 +51,6 @@ export class dbService {
                 id: id
             }
         };
-
         return this.dynamoDBDocuClient.get(params).promise();
     }
 
@@ -181,10 +180,6 @@ export class dbService {
 
         return response;
     }
-
-    // private generateExpressionAttributeValues = () => {
-
-    // }
 
     private generateExpressionAttributeValues = (items: object): object => {
         let response: {[key: string]: any} = {}; 
