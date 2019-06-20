@@ -110,11 +110,6 @@ export const authoriseKey = async (event, context, callback) => {
       apiId: apiKeyService.getApiId(event.methodArn),
       stage: apiKeyService.getStage(event.methodArn)
     };
-    const api_key = event.authorizationToken;
-    const method_arn = event.methodArn;
-    const api_id = apiKeyService.getApiId(method_arn);
-    const stage = apiKeyService.getStage(method_arn);
-
     if(!allKeysHaveValues(authoriseKeyRequest)) {
       throw new Error("Request variables are missing");
     }
@@ -122,6 +117,7 @@ export const authoriseKey = async (event, context, callback) => {
     const policy = await apiKey.authorise(authoriseKeyRequest);
     return policy;
   } catch (error) {
+    console.log('error', error);
     callback(error, "unauthorised"); 
   }
 }
