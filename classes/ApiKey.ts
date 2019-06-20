@@ -298,6 +298,7 @@ export class ApiKey {
                 apiID: authoriseKeyRequest.apiId,
                 stage: authoriseKeyRequest.stage
             };
+            authoriseKeyRequest.methodArn = apiKeyService.generateWildCardForResourcePath(authoriseKeyRequest.methodArn);
             // Retrieve objects from DB that match apiKey and apiID
             await db.scan(params).then((data) => {
                 key = data.Items[0];
@@ -322,10 +323,10 @@ export class ApiKey {
                         console.log(error);
                     });
                 // Generate allow policy if key is verified
-                policy = apiKeyService.generatePolicy(key.cognitoUsername, "Allow", authoriseKeyRequest.methodArn)
+                policy = apiKeyService.generatePolicy(key.cognitoUsername, "Allow", authoriseKeyRequest.methodArn);
             } else {
                 // Generate deny policy if key is verified
-                policy = apiKeyService.generatePolicy(key.cognitoUsername, "Deny", authoriseKeyRequest.methodArn)
+                policy = apiKeyService.generatePolicy(key.cognitoUsername, "Deny", authoriseKeyRequest.methodArn);
             }
             return policy;
         } catch (error) {
