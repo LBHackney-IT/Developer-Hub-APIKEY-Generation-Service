@@ -248,6 +248,10 @@ functions:
                 apiId: true
     
 resources:
+  Conditions:
+    IsProd:
+      !Equals [${opt:stage} , production]
+
   Resources:
     TokenStore:
       Type: 'AWS::DynamoDB::Table'
@@ -290,6 +294,7 @@ resources:
           WriteCapacityUnits: 5
     ApiSearch:
       Type: "AWS::Elasticsearch::Domain"
+      Condition: !IsProd
       Properties:
         ElasticsearchVersion: ${self:provider.environment.ELASTIC_SEARCH_VERSION}
         DomainName: ${self:provider.environment.ELASTIC_SEARCH_DOMAIN_NAME}
