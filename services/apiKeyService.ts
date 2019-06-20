@@ -23,8 +23,6 @@ export class apiKeyService {
         }
 
         return text;
-
-        // return this.encrypt(text);
     }
 
     /**
@@ -177,7 +175,5 @@ export class apiKeyService {
         methodParts = methodParts.slice(0, 5);
         methodParts.push(requiredResourcePathString);
         return methodParts.join(':');
-    }
-
-    
+    }  
 }
