@@ -161,5 +161,23 @@ export class apiKeyService {
         return methodParts[5].split('/')[1];
     }
 
+    /**
+     * This function replaces the resource path with an asterix
+     * e.g /customers/api/v1/healthcheck will change to /customers/*
+     *
+     * @static
+     * @memberof apiKeyService
+     */
+    static generateWildCardForResourcePath = (methodArn: string) => {
+        let methodParts = methodArn.split(':');
+        let resourcePath = methodParts[5].split('/');
+        let requiredResourcePath = resourcePath.slice(0, 4);
+        requiredResourcePath.push('*');
+        let requiredResourcePathString = requiredResourcePath.join('/');
+        methodParts = methodParts.slice(0, 5);
+        methodParts.push(requiredResourcePathString);
+        return methodParts.join(':');
+    }
+
     
 }
