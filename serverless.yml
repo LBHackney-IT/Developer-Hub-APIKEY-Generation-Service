@@ -249,8 +249,10 @@ functions:
     
 resources:
   Conditions:
-    IsProd:
-      !Equals [${opt:stage} , production]
+    IsDev:
+      Fn::Equals: 
+        - ${opt:stage}
+        - dev
 
   Resources:
     TokenStore:
@@ -294,7 +296,7 @@ resources:
           WriteCapacityUnits: 5
     ApiSearch:
       Type: "AWS::Elasticsearch::Domain"
-      Condition: !IsProd
+      Condition: IsDev
       Properties:
         ElasticsearchVersion: ${self:provider.environment.ELASTIC_SEARCH_VERSION}
         DomainName: ${self:provider.environment.ELASTIC_SEARCH_DOMAIN_NAME}
