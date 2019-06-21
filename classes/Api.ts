@@ -158,7 +158,7 @@ export class Api {
                         }
                     })
                     .catch((error) => {
-                        throw new Error('Elastic search cluster is down');
+                        throw new Error(error.message);
                     });
             });
             return response;
