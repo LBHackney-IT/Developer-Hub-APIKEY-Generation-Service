@@ -149,7 +149,7 @@ export class Api {
                     throw new Error(error.message);
                 });
 
-            listOfApis.forEach(async (api) => {
+            await Promise.all(listOfApis.map(async (api) => {
                 await this.esService.index(api, process.env.ELASTIC_INDEX_API)
                     .then(() => {
                         response = {
@@ -160,7 +160,7 @@ export class Api {
                     .catch((error) => {
                         throw new Error(error.message);
                     });
-            });
+            }));
             return response;
         } catch (error) {
             throw new Error(error.message);
