@@ -36,6 +36,7 @@
     "serverless-aws-documentation": "^1.1.0",
     "serverless-offline": "^3.32.1",
     "serverless-offline-scheduler": "^0.3.7",
+    "serverless-plugin-ifelse": "^1.0.4",
     "serverless-webpack": "^5.1.1",
     "sinon": "^7.2.3",
     "source-map-support": "^0.5.6",
