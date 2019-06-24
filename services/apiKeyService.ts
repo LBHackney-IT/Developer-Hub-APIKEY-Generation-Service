@@ -162,7 +162,7 @@ export class apiKeyService {
     /**
      * This function replaces the resource path with an asterix
      * e.g /customers/api/v1/healthcheck will change to /customers/*
-     *
+     * Example ARN: arn:aws:execute-api:region:7730:xxxxxx/staging/methodType/api_gateway_id/*
      * @static
      * @memberof apiKeyService
      */

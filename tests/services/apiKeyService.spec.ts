@@ -113,7 +113,7 @@ describe('apiKeyService' , () => {
     });
 
     describe('methodArn' , () => {
-        const methodArn = 'arn:aws:execute-api:eu-west-2:7730:g6g0ojk/staging/GET/address/find?q=thomas';
+        const methodArn = 'arn:aws:execute-api:eu-west-2:1234:jhsbfsdjk/staging/GET/address/find?q=thomas';
         
         it('getApiId' , () => {
             const response = apiKeyService.getApiId(methodArn);
@@ -132,7 +132,7 @@ describe('apiKeyService' , () => {
 
         it('generateWildCardForResourcePath' , () => {
             const response = apiKeyService.generateWildCardForResourcePath(methodArn);
-            expect(response).to.equal('arn:aws:execute-api:eu-west-2:7730:g6g0ojk/staging/GET/address/*');
+            expect(response).to.equal('arn:aws:execute-api:eu-west-2:1234:jhsbfsdjk/staging/GET/address/*');
         });
     });
 });
