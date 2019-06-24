@@ -43,3 +43,16 @@ export const allKeysHaveValues = (item: object): boolean => {
     });
     return response;
 }
+
+export const getStage = () => {
+    const isProd = process.env.IS_PROD;
+    let environmentName: string;
+
+    if(isProd) {
+        environmentName = 'production'
+    } else {
+        environmentName = 'dev'
+    }
+
+    return environmentName;
+}
