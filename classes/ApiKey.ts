@@ -1,6 +1,6 @@
 import { dbService } from '../services/dbService';
 import { ICreateKeyRequest, IReadKeyRequest, IVerifyKeyRequest, IAuthoriseKeyRequest } from '../interfaces/IRequests';
-import { generateID, assignToBody } from '../helper';
+import { generateID, assignToBody, getStage } from '../helper';
 import { apiKeyService } from '../services/apiKeyService';
 import { AWSError, Lambda } from 'aws-sdk';
 import { IApi } from '../interfaces/IApi';
@@ -309,8 +309,10 @@ export class ApiKey {
             if (key.verified) {
                 const lambda = new Lambda({ apiVersion: '2015-03-31' });
                 key.methodType = apiKeyService.getMethod(authoriseKeyRequest.methodArn);
+                // Update function name to ensure it works independent of stage
+                const environmentName = getStage();
                 const params = {
-                    FunctionName: 'token-generator-dev-update-api-key-last-accessed',
+                    FunctionName: `token-generator-${environmentName}-update-api-key-last-accessed`,
                     InvocationType: "Event",
                     Payload: JSON.stringify(key)
                 };
