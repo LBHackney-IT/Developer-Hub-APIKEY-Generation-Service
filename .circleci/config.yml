@@ -31,6 +31,15 @@ jobs:
       - run: 
           name: Run tests with coverage
           command: npm test --coverage
+      # - aws-cli/install
+      - run:
+          name: Install AWS cli
+          command:
+            sudo apt-get -y -qq install awscli
+      - aws-cli/configure:
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+          aws-region: AWS_DEFAULT_REGION
       - run:
           name: Deploy application
           command: |
