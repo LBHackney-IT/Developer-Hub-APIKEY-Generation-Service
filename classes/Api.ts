@@ -1,7 +1,7 @@
 import { dbService } from "../services/dbService";
 import { elasticSearchService } from '../services/elasticSearchService';
 import { IApi } from "../interfaces/IApi";
-import { assignToBody } from '../helper';
+import { assignToBody } from '../utility/helper';
 import { AWSError } from 'aws-sdk';
 import { DynamoDBStreamEvent } from "aws-lambda";
 import { DynamoDB } from 'aws-sdk';
