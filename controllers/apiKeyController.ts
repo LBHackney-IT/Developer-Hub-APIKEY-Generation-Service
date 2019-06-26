@@ -1,12 +1,9 @@
-import { APIGatewayProxyHandler, CustomAuthorizerHandler, CustomAuthorizerEvent, Callback, CustomAuthorizerResult } from 'aws-lambda';
-import { AWSError } from 'aws-sdk';
-import { dbService } from '../services/dbService';
+import { APIGatewayProxyHandler} from 'aws-lambda';
 import { apiKeyService } from '../services/apiKeyService';
-import { generateID, assignToBody, allKeysHaveValues } from '../helper';
+import { allKeysHaveValues } from '../utility/helper';
 import { responseService } from '../services/responseService';
 import { ICreateKeyRequest, IReadKeyRequest, IVerifyKeyRequest, IAuthoriseKeyRequest } from '../interfaces/IRequests';
 import { ApiKey } from '../classes/ApiKey';
-import { getApi } from './apiController';
 import { IKey } from '../interfaces/IKey';
 
 export const createKey: APIGatewayProxyHandler = async (event, context) => {
@@ -110,11 +107,6 @@ export const authoriseKey = async (event, context, callback) => {
       apiId: apiKeyService.getApiId(event.methodArn),
       stage: apiKeyService.getStage(event.methodArn)
     };
-    const api_key = event.authorizationToken;
-    const method_arn = event.methodArn;
-    const api_id = apiKeyService.getApiId(method_arn);
-    const stage = apiKeyService.getStage(method_arn);
-
     if(!allKeysHaveValues(authoriseKeyRequest)) {
       throw new Error("Request variables are missing");
     }
@@ -122,6 +114,7 @@ export const authoriseKey = async (event, context, callback) => {
     const policy = await apiKey.authorise(authoriseKeyRequest);
     return policy;
   } catch (error) {
+    console.log('error', error);
     callback(error, "unauthorised"); 
   }
 }

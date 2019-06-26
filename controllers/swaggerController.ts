@@ -1,10 +1,5 @@
 import { ScheduledHandler, ScheduledEvent, APIGatewayProxyHandler, APIGatewayEvent } from "aws-lambda";
-import { elasticSearchService } from '../services/elasticSearchService';
 import { responseService } from '../services/responseService';
-import Axios from "axios";
-import { createPathKey, assignToBody } from '../helper';
-import { ISwagger } from '../interfaces/ISwagger';
-import { swaggerFiles } from '../swagger-store';
 import { Swagger } from '../classes/Swagger';
 
 const endInJsonRegex = '(.json)$';

@@ -12,7 +12,7 @@ export class dbService {
      */
     constructor(tableName: string) {
 
-        this.dynamoDBDocuClient = new DynamoDB.DocumentClient();
+        this.dynamoDBDocuClient = new DynamoDB.DocumentClient({region: process.env.REGION});
         switch (tableName) {
             case 'apiKey': {
                 this.tableName = process.env.APIKEY_DYNAMODB_TABLE;
