@@ -30,6 +30,7 @@ provider:
     ELASTIC_SEARCH_ENDPOINT: https://search-api-search-i7mzbfy4dowrf6r3offrnrjhze.eu-west-2.es.amazonaws.com
     ELASTIC_SEARCH_VERSION: "6.3"
     IS_PROD: false
+    REGION: ${opt:region, self:provider.region}
   iamRoleStatements:
     - Effect: Allow
       Action:
