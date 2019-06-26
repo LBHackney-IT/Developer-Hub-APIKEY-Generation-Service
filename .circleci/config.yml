@@ -31,3 +31,11 @@ jobs:
       - run: 
           name: Run tests with coverage
           command: npm test --coverage
+      - run:
+          name: Deploy application
+          command: |
+              if [ "${CIRCLE_BRANCH}" == "master" ]; then
+                  serverless deploy --stage production
+              elif [ "${CIRCLE_BRANCH}" == "staging" ]; then
+                  serverless deploy --stage dev
+              fi

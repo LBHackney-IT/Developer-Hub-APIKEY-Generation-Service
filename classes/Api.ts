@@ -1,7 +1,7 @@
 import { dbService } from "../services/dbService";
 import { elasticSearchService } from '../services/elasticSearchService';
 import { IApi } from "../interfaces/IApi";
-import { assignToBody } from '../helper';
+import { assignToBody } from '../utility/helper';
 import { AWSError } from 'aws-sdk';
 import { DynamoDBStreamEvent } from "aws-lambda";
 import { DynamoDB } from 'aws-sdk';
@@ -10,7 +10,12 @@ import { DynamoDB } from 'aws-sdk';
 export class Api {
     private DATABASE_ID = 'api';
     private API_INDEX = process.env.ELASTIC_INDEX_API
-
+    db: dbService;
+    esService: elasticSearchService;
+    constructor() {
+        this.db = new dbService(this.DATABASE_ID);
+        this.esService = new elasticSearchService();
+    }
     /**
      * This is a function to create and update and api
      *
@@ -19,10 +24,8 @@ export class Api {
     create = async (api: IApi) => {
         try {
             let response;
-            const db: dbService = new dbService(this.DATABASE_ID);
-            const esService: elasticSearchService = new elasticSearchService();
 
-            await db.putItem(api)
+            await this.db.putItem(api)
                 .then((data) => {
                     console.log(data);
                     response = assignToBody(api);
@@ -30,8 +33,8 @@ export class Api {
                 .catch((error: AWSError) => {
                     throw new Error(error.message);
                 });
-
-            await esService.index(api, process.env.ELASTIC_INDEX_API)
+                
+            await this.esService.index(api, process.env.ELASTIC_INDEX_API)
                 .then((data) => {
                     console.log(data);
                 })
@@ -54,9 +57,7 @@ export class Api {
         try {
             let response;
 
-            const esService: elasticSearchService = new elasticSearchService();
-
-            await esService.getItem(id, this.API_INDEX)
+            await this.esService.getItem(id, this.API_INDEX)
                 .then((data) => {
                     response = assignToBody(data._source);
                 }).catch((error) => {
@@ -78,9 +79,8 @@ export class Api {
     readAll = async (): Promise<IApi[]> => {
         try {
             let response;
-            const esService: elasticSearchService = new elasticSearchService();
 
-            await esService.getItems(this.API_INDEX)
+            await this.esService.getItems(this.API_INDEX)
                 .then((data) => {
                     response = data.hits.hits;
                     response = response.map((item) => {
@@ -107,11 +107,8 @@ export class Api {
     delete = async (id: string) => {
         try {
             let response;
-            const db: dbService = new dbService(this.DATABASE_ID);
-            const esService: elasticSearchService = new elasticSearchService();
 
-
-            await db.deleteItem(id)
+            await this.db.deleteItem(id)
                 .then((data) => {
                     response = assignToBody(id);
                 })
@@ -119,7 +116,7 @@ export class Api {
                     throw new Error(error.message);
                 });
 
-            await esService.delete(id, process.env.ELASTIC_INDEX_API)
+            await this.esService.delete(id, process.env.ELASTIC_INDEX_API)
                 .then((data) => {
                     console.log(data);
                 })
@@ -143,9 +140,8 @@ export class Api {
     manuallyUpdateElasticSearch = async () => {
         try {
             let response;
-            let listOfApis: IApi[];
-            const db: dbService = new dbService(this.DATABASE_ID);
-            await db.getAllItems()
+            let listOfApis: IApi[] = [];
+            await this.db.getAllItems()
                 .then((data) => {
                     listOfApis = data.Items
                 })
@@ -153,10 +149,8 @@ export class Api {
                     throw new Error(error.message);
                 });
 
-            const esService: elasticSearchService = new elasticSearchService();
-
-            listOfApis.forEach(async (api) => {
-                await esService.index(api, process.env.ELASTIC_INDEX_API)
+            await Promise.all(listOfApis.map(async (api) => {
+                await this.esService.index(api, process.env.ELASTIC_INDEX_API)
                     .then(() => {
                         response = {
                             ...response,
@@ -164,9 +158,9 @@ export class Api {
                         }
                     })
                     .catch((error) => {
-                        throw new Error('Elastic search cluster is down');
+                        throw new Error(error.message);
                     });
-            });
+            }));
             return response;
         } catch (error) {
             throw new Error(error.message);

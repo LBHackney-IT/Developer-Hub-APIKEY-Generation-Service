@@ -1,6 +1,6 @@
 import { ISwagger } from '../interfaces/ISwagger';
 import { elasticSearchService } from '../services/elasticSearchService';
-import { assignToBody, createPathKey } from '../helper';
+import { assignToBody, createPathKey } from '../utility/helper';
 import Axios from "axios";
 
 export class Swagger {

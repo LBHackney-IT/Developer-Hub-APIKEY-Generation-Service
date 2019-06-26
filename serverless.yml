@@ -6,6 +6,7 @@ plugins:
   - serverless-webpack
   - serverless-offline
   - serverless-offline-scheduler
+  - serverless-plugin-ifelse
 
 provider:
   name: aws
@@ -28,6 +29,8 @@ provider:
     ELASTIC_INDEX_SWAGGER: swagger
     ELASTIC_SEARCH_ENDPOINT: https://search-api-search-i7mzbfy4dowrf6r3offrnrjhze.eu-west-2.es.amazonaws.com
     ELASTIC_SEARCH_VERSION: "6.3"
+    IS_PROD: false
+    REGION: ${opt:region, self:provider.region}
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -71,6 +74,14 @@ provider:
         - lambda:InvokeFunction
       Resource:
         - "arn:aws:lambda:${opt:region, self:provider.region}:*:function:token-generator-dev-update-api-key-last-accessed"
+custom:
+  currentStage: ${opt:stage, self:provider.stage}
+  serverlessIfElse:
+    - If: '"${self:custom.currentStage}" == "production"'
+      Set: 
+        provider.environment.IS_PROD: true
+      ElseSet: 
+        provider.environment.IS_PROD: false
 functions:
   # APIKEY CONTROLLER
   create-api-key:
@@ -227,7 +238,8 @@ functions:
   get-swagger-info-from-json:
     handler: controllers/swaggerController.periodicallyIndexESWithSwaggerJson
     events:
-      - schedule: rate(1 day) 
+      - schedule: rate(1 day)
+      - enabled: ${self:provider.environment.IS_PROD}
   read-swagger-list:
     handler: controllers/swaggerController.getSwaggerList
     events: 
@@ -248,6 +260,12 @@ functions:
                 apiId: true
     
 resources:
+  Conditions:
+    IsDev:
+      Fn::Equals: 
+        - ${opt:stage}
+        - dev
+
   Resources:
     TokenStore:
       Type: 'AWS::DynamoDB::Table'
@@ -290,6 +308,7 @@ resources:
           WriteCapacityUnits: 5
     ApiSearch:
       Type: "AWS::Elasticsearch::Domain"
+      Condition: IsDev
       Properties:
         ElasticsearchVersion: ${self:provider.environment.ELASTIC_SEARCH_VERSION}
         DomainName: ${self:provider.environment.ELASTIC_SEARCH_DOMAIN_NAME}

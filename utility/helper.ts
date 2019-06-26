@@ -1,5 +1,5 @@
-import { IPath } from './interfaces/IPath';
-import { IPathParameter } from './interfaces/IPathParameter';
+import { IPath } from '../interfaces/IPath';
+import { IPathParameter } from '../interfaces/IPathParameter';
 export const generateID = (cognitoUsername: string, apiID: string, stage: string): string => {
     return cognitoUsername + '_' + apiID + '_' + stage;
 }
@@ -42,4 +42,17 @@ export const allKeysHaveValues = (item: object): boolean => {
         response = !item[key] ? false : response;
     });
     return response;
+}
+
+export const getStage = () => {
+    const isProd = process.env.IS_PROD;
+    let environmentName: string;
+
+    if(isProd == 'true') {
+        environmentName = 'production'
+    } else {
+        environmentName = 'dev'
+    }
+
+    return environmentName;
 }
