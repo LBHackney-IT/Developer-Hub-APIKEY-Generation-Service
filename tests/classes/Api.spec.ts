@@ -2,10 +2,7 @@ import 'mocha';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { Api } from '../../classes/Api';
-import { dbService } from '../../services/dbService';
 import { generateRandomApi, generateTestApis } from '../mock-db';
-import { resolve } from 'dns';
-import { assignToBody } from '../../helper';
 const expect = chai.expect;
 
 describe('Api', () => {

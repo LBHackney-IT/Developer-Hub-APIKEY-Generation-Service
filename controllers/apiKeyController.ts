@@ -1,12 +1,9 @@
-import { APIGatewayProxyHandler, CustomAuthorizerHandler, CustomAuthorizerEvent, Callback, CustomAuthorizerResult } from 'aws-lambda';
-import { AWSError } from 'aws-sdk';
-import { dbService } from '../services/dbService';
+import { APIGatewayProxyHandler} from 'aws-lambda';
 import { apiKeyService } from '../services/apiKeyService';
-import { generateID, assignToBody, allKeysHaveValues } from '../helper';
+import { allKeysHaveValues } from '../utility/helper';
 import { responseService } from '../services/responseService';
 import { ICreateKeyRequest, IReadKeyRequest, IVerifyKeyRequest, IAuthoriseKeyRequest } from '../interfaces/IRequests';
 import { ApiKey } from '../classes/ApiKey';
-import { getApi } from './apiController';
 import { IKey } from '../interfaces/IKey';
 
 export const createKey: APIGatewayProxyHandler = async (event, context) => {

@@ -1,6 +1,6 @@
 import { dbService } from '../services/dbService';
 import { ICreateKeyRequest, IReadKeyRequest, IVerifyKeyRequest, IAuthoriseKeyRequest } from '../interfaces/IRequests';
-import { generateID, assignToBody, getStage } from '../helper';
+import { generateID, assignToBody, getStage } from '../utility/helper';
 import { apiKeyService } from '../services/apiKeyService';
 import { AWSError, Lambda } from 'aws-sdk';
 import { IApi } from '../interfaces/IApi';
