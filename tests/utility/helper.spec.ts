@@ -1,6 +1,6 @@
 import 'mocha';
 import * as chai from 'chai';
-import { generateID, assignToBody, createPathKey } from '../helper';
+import { generateID, assignToBody, createPathKey, getStage } from '../../utility/helper';
 
 const expect = chai.expect;
 describe('Helper File', () => {
@@ -10,7 +10,7 @@ describe('Helper File', () => {
             const apiID = 'apiID';
             const stage = 'development';
             const result = generateID(cognitoUsername, apiID, stage);
-            expect(result).to.equal('xxx_apiID');
+            expect(result).to.equal('xxx_apiID_development');
         });
     });
 
@@ -94,6 +94,20 @@ describe('Helper File', () => {
 
             expect(result).to.be.an('array');
             expect(result[0]).to.be.an('object');
+        });
+    });
+    
+    describe('getStage', () => {
+        it('should return production if is prod is true', () => {
+            process.env.IS_PROD = 'true';
+            const result = getStage();
+            expect(result).to.equal('production');
+        });
+
+        it('should return dev if is prod is false', () => {
+            process.env.IS_PROD = 'false';
+            const result = getStage();
+            expect(result).to.equal('dev');
         });
     });
 
